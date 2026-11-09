@@ -18,7 +18,7 @@ readonly semver='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z
 
 fail() { echo "release-info: $1" >&2; exit 1; }
 
-[ $# -eq 2 ] || fail "usage: release-info.sh <tag> <sha>"
+[[ $# -eq 2 ]] || fail "usage: release-info.sh <tag> <sha>"
 tag="$1"
 sha="$2"
 
@@ -44,13 +44,13 @@ done
 
 # A breaking change needs a major bump from 1.0.0 on, or a minor bump in 0.y (SemVer §4).
 baseline=""
-if [ -n "$previous" ]; then
+if [[ -n "$previous" ]]; then
   [[ "$previous" =~ $semver ]]
   previous_major="${BASH_REMATCH[1]}"
   previous_minor="${BASH_REMATCH[2]}"
-  if [ "$major" -gt "$previous_major" ]; then
+  if [[ "$major" -gt "$previous_major" ]]; then
     baseline=""
-  elif [ "$major" -eq 0 ] && [ "$previous_major" -eq 0 ] && [ "$minor" -gt "$previous_minor" ]; then
+  elif [[ "$major" -eq 0 && "$previous_major" -eq 0 && "$minor" -gt "$previous_minor" ]]; then
     baseline=""
   else
     baseline="${previous#v}"
@@ -58,5 +58,5 @@ if [ -n "$previous" ]; then
 fi
 
 echo "version=${tag#v}"
-if [ -n "$prerelease_part" ]; then echo "prerelease=true"; else echo "prerelease=false"; fi
+if [[ -n "$prerelease_part" ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi
 echo "baseline=$baseline"

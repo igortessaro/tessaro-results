@@ -31,4 +31,4 @@ if [[ "$title" =~ $deps_pattern ]]; then
 fi
 
 [[ "$title" =~ $title_pattern ]] || fail "it does not match the format"
-[ "${#title}" -le "$max_length" ] || fail "it has ${#title} characters (maximum $max_length)"
+[[ "${#title}" -le "$max_length" ]] || fail "it has ${#title} characters (maximum $max_length)"
