@@ -37,4 +37,59 @@ public class NonFunctionalTests
 
         seen.Distinct().ShouldHaveSingleItem();
     }
+
+    // Spec 002 NFR-2: the async members never resume on the caller's synchronization context.
+    private sealed class CountingContext : SynchronizationContext
+    {
+        private int _posts;
+
+        public int Posts => _posts;
+
+        public override void Post(SendOrPostCallback d, object? state)
+        {
+            Interlocked.Increment(ref _posts);
+            ThreadPool.QueueUserWorkItem(_ => d(state));
+        }
+    }
+
+    [Fact]
+    [Trait("Spec", "002")]
+    [Trait("NFR", "NFR-2")]
+    public async Task Async_members_do_not_resume_on_the_callers_context()
+    {
+        var context = new CountingContext();
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        Task<string> chain;
+
+        SynchronizationContext.SetSynchronizationContext(context);
+        try
+        {
+            Task<Result<int>> later = Task.Run(async () =>
+            {
+                await Task.Delay(20);
+                return Result.Ok(1);
+            });
+
+            chain = later
+                .MapAsync(async v =>
+                {
+                    await Task.Delay(1);
+                    return v + 1;
+                })
+                .BindAsync(v => Result.Ok(v * 10))
+                .BindAsync(async v =>
+                {
+                    await Task.Delay(1);
+                    return Result.Ok(v);
+                })
+                .MatchAsync(v => Task.FromResult($"value {v}"), _ => Task.FromResult("failure"));
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+
+        (await chain).ShouldBe("value 20");
+        context.Posts.ShouldBe(0);
+    }
 }
