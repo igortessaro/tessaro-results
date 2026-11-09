@@ -1,7 +1,7 @@
 # Plan 001 — Result core
 
 **Status:** Approved (2026-11-09) · **Created:** 2026-11-09
-**Spec:** [001 — Result core](spec.md) (Approved 2026-11-09) · **Constitution:** [v1.0.0](../../docs/constitution.md)
+**Spec:** [001 — Result core](spec.md) (Implemented 2026-11-09) · **Constitution:** [v1.0.0](../../docs/constitution.md)
 
 > This plan defines **how** spec 001 is built. The ordered implementation steps belong in `tasks.md`.
 

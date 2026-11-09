@@ -1,7 +1,8 @@
 # Tasks 001 — Result core
 
 **Status:** Approved (2026-11-09) · **Created:** 2026-11-09
-**Spec:** [001](spec.md) (Approved 2026-11-09) · **Plan:** [001](plan.md) (Approved 2026-11-09)
+**Spec:** [001](spec.md) (Implemented 2026-11-09) · **Plan:** [001](plan.md) (Approved 2026-11-09)
+**Retrospective:** [retrospective.md](retrospective.md) (2026-11-09)
 
 > Ordered, small, independently verifiable steps that implement plan 001. Each task is **one
 > branch and one pull request**. Tasks run in order: each one builds on the merged result of the
