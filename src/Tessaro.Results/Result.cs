@@ -21,7 +21,9 @@ public class Result
 
     private static readonly Result _success = new(ReadOnlyCollection<Error>.Empty);
 
-    private protected Result(ReadOnlyCollection<Error> errors) => Errors = errors;
+    private readonly ReadOnlyCollection<Error> _errors;
+
+    private protected Result(ReadOnlyCollection<Error> errors) => _errors = errors;
 
     /// <summary>Gets a value indicating whether the operation succeeded (it has no errors).</summary>
     public bool IsSuccess => Errors.Count == 0;
@@ -33,7 +35,7 @@ public class Result
     /// Gets the errors of a failure, in the order they were given; empty, never <see langword="null"/>,
     /// for a success. The list is read-only.
     /// </summary>
-    public IReadOnlyList<Error> Errors { get; }
+    public IReadOnlyList<Error> Errors => _errors;
 
     /// <summary>Returns a success without a value.</summary>
     /// <returns>The success. Every call returns the same immutable instance.</returns>
@@ -94,6 +96,17 @@ public class Result
     /// <exception cref="ArgumentNullException"><paramref name="message"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException"><paramref name="message"/> is empty or white space.</exception>
     public static Result<T> Fail<T>(string message) where T : notnull => Fail<T>(Error.Failure(GeneralFailureCode, message));
+
+    /// <summary>
+    /// Carries this failure over to a <see cref="Result{T}"/> of any value type, with the same errors in
+    /// the same order — e.g. to return a failed <see cref="Result"/> from a method that returns
+    /// <c>Result&lt;Order&gt;</c>.
+    /// </summary>
+    /// <typeparam name="T">The type of the value the new result would hold on success.</typeparam>
+    /// <returns>A failure of <see cref="Result{T}"/> sharing this result's (immutable) errors.</returns>
+    /// <exception cref="InvalidOperationException">This result is a success: it has no errors to carry over and no value to give.</exception>
+    public Result<T> ToFailure<T>() where T : notnull =>
+        IsFailure ? new Result<T>(_errors) : throw new InvalidOperationException("A successful result has no errors to carry over.");
 
     /// <summary>Converts an error to a failure, so a method returning <see cref="Result"/> can <c>return error;</c>.</summary>
     /// <param name="error">The error.</param>
