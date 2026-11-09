@@ -16,17 +16,27 @@ Tessaro.ErrorType.Validation = 1 -> Tessaro.ErrorType
 Tessaro.Result
 Tessaro.Result.Bind(System.Func<Tessaro.Result!>! next) -> Tessaro.Result!
 Tessaro.Result.Bind<TOut>(System.Func<Tessaro.Result<TOut>!>! next) -> Tessaro.Result<TOut>!
+Tessaro.Result.BindAsync(System.Func<System.Threading.Tasks.Task<Tessaro.Result!>!>! next) -> System.Threading.Tasks.Task<Tessaro.Result!>!
+Tessaro.Result.BindAsync<TOut>(System.Func<System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!>! next) -> System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!
 Tessaro.Result.Errors.get -> System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!
 Tessaro.Result.IsFailure.get -> bool
 Tessaro.Result.IsSuccess.get -> bool
+Tessaro.Result.Map<TOut>(System.Func<System.Threading.Tasks.Task<TOut>!>! mapper) -> Tessaro.Result<System.Threading.Tasks.Task<TOut>!>!
 Tessaro.Result.Map<TOut>(System.Func<TOut>! mapper) -> Tessaro.Result<TOut>!
+Tessaro.Result.MapAsync<TOut>(System.Func<System.Threading.Tasks.Task<TOut>!>! mapper) -> System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!
 Tessaro.Result.Match<TOut>(System.Func<TOut>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, TOut>! onFailure) -> TOut
+Tessaro.Result.MatchAsync<TOut>(System.Func<System.Threading.Tasks.Task<TOut>!>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task<TOut>!>! onFailure) -> System.Threading.Tasks.Task<TOut>!
 Tessaro.Result.ToFailure<T>() -> Tessaro.Result<T>!
 Tessaro.Result<T>
 Tessaro.Result<T>.Bind(System.Func<T, Tessaro.Result!>! next) -> Tessaro.Result!
 Tessaro.Result<T>.Bind<TOut>(System.Func<T, Tessaro.Result<TOut>!>! next) -> Tessaro.Result<TOut>!
+Tessaro.Result<T>.BindAsync(System.Func<T, System.Threading.Tasks.Task<Tessaro.Result!>!>! next) -> System.Threading.Tasks.Task<Tessaro.Result!>!
+Tessaro.Result<T>.BindAsync<TOut>(System.Func<T, System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!>! next) -> System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!
+Tessaro.Result<T>.Map<TOut>(System.Func<T, System.Threading.Tasks.Task<TOut>!>! mapper) -> Tessaro.Result<System.Threading.Tasks.Task<TOut>!>!
 Tessaro.Result<T>.Map<TOut>(System.Func<T, TOut>! mapper) -> Tessaro.Result<TOut>!
+Tessaro.Result<T>.MapAsync<TOut>(System.Func<T, System.Threading.Tasks.Task<TOut>!>! mapper) -> System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!
 Tessaro.Result<T>.Match<TOut>(System.Func<T, TOut>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, TOut>! onFailure) -> TOut
+Tessaro.Result<T>.MatchAsync<TOut>(System.Func<T, System.Threading.Tasks.Task<TOut>!>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task<TOut>!>! onFailure) -> System.Threading.Tasks.Task<TOut>!
 Tessaro.Result<T>.Value.get -> T
 override Tessaro.Error.Equals(object? obj) -> bool
 override Tessaro.Error.GetHashCode() -> int

@@ -118,6 +118,7 @@ public sealed partial class Result<T>
 | `MatchAsync` with sync branches on a pending result whose branches return different types | Name the type: `MatchAsync<OrderDto, IResult>(…)` | Same as spec 001 `Match<IResult>`; documented |
 | `result.BindAsync(o => o.ChangeStatus(…))` on a **completed** result (sync step) | Compile error (only async steps exist on completed results); use `Bind` | Spiked: CS0029, by design |
 | `result.Map(o => repository.GetAsync(o.Id))` (async lambda in the sync `Map`) | Without the guard: compiles and returns `Result<Task<Order>>`. With the §3.3 guard: **CS0619** pointing to `MapAsync` | Spiked — see §8 R2 |
+| `result.Map<string>(_ => null!)` (explicit type argument and an untyped `null`) | *Amended 2026-11-09 (T01):* ambiguous with the guard (CS0121) — the `null` literal fits both `Func<T, string>` and `Func<T, Task<string>>`. Type it: `_ => (string)null!`. Spec 001's AC-6.8 test was adjusted that way | Side effect of the AC-3.7 guard; only an untyped `null` with an explicit type argument is affected (spiked in the T01 consumer check) |
 
 ## 4. Build configuration
 

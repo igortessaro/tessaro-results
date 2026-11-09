@@ -163,8 +163,8 @@ public class TransformTests
     [Trait("AC", "AC-6.8")]
     public void Map_returning_null_throws_InvalidOperationException()
     {
-        Should.Throw<InvalidOperationException>(() => Result.Ok(1).Map<string>(_ => null!)).Message.ShouldContain("mapper returned null");
-        Should.Throw<InvalidOperationException>(() => Result.Ok().Map<string>(() => null!)).Message.ShouldContain("mapper returned null");
+        Should.Throw<InvalidOperationException>(() => Result.Ok(1).Map<string>(_ => (string)null!)).Message.ShouldContain("mapper returned null");
+        Should.Throw<InvalidOperationException>(() => Result.Ok().Map<string>(() => (string)null!)).Message.ShouldContain("mapper returned null");
     }
 
     [Fact]
