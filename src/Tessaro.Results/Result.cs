@@ -15,7 +15,7 @@ namespace Tessaro;
 /// <c>Result&lt;T&gt;.Ok()</c>, but that returns a <see cref="Result"/>; always call them on
 /// <see cref="Result"/>.</para>
 /// </remarks>
-public class Result
+public partial class Result
 {
     private const string GeneralFailureCode = "general.failure";
 
