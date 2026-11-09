@@ -1,6 +1,7 @@
 # Spec 002 — Async composition
 
-**Status:** Approved (2026-11-09) · **Created:** 2026-11-09
+**Status:** Implemented (2026-11-09) · **Approved:** 2026-11-09 · **Created:** 2026-11-09
+**Retrospective:** [retrospective.md](retrospective.md) (2026-11-09)
 **Constitution:** [v1.0.0](../../docs/constitution.md) · **ADRs:** [0001](../../docs/adr/0001-result-of-t-derives-from-result.md), [0002](../../docs/adr/0002-error-model.md), [0004](../../docs/adr/0004-namespace-tessaro.md), [0006](../../docs/adr/0006-async-members-end-with-async.md)
 *Amended 2026-11-09 with plan 002 approval: AC-3.7 added (plan resolved question 1).*
 **Builds on:** [spec 001 — Result core](../001-result-core/spec.md) (Implemented 2026-11-09)
