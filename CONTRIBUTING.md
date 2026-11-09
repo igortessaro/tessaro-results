@@ -97,24 +97,20 @@ MIT licence and the repository link.
 | GitHub Release step only | The package is published. Create the release by hand: `gh release create v0.1.0 pkg/* --verify-tag --generate-notes` (add `--prerelease --latest=false` for an rc) |
 | A published version is bad | Unlist it on nuget.org (*Manage package → Listing*) and release a fixed patch. Versions cannot be deleted |
 
-### One-time setup (already done, kept for reference)
+### One-time setup
 
-**nuget.org, owner only.** A *Trusted Publishing* policy with these settings:
-- package `Tessaro.Results`, scope "Push new packages and package versions";
-- repository `igortessaro/tessaro-results`;
-- workflow `release.yml`;
-- environment `release`.
+Done once per repository ([spec 003](specs/003-nuget-release/plan.md) §5). Steps marked *owner* need
+the owner's accounts or credentials; Claude never handles them.
 
-**Secret, owner only.** The `NUGET_USER` secret holds the nuget.org profile name:
-`gh secret set NUGET_USER`.
+| # | Step | Who | Done |
+|---|---|---|---|
+| 1 | nuget.org: the `Tessaro` ID prefix is reserved to the owner's account (*Account → Prefix reservation*) | owner | |
+| 2 | nuget.org: a *Trusted Publishing* policy — package `Tessaro.Results`, scope "Push new packages and package versions", repository `igortessaro/tessaro-results`, workflow `release.yml`, environment `release` | owner | |
+| 3 | Secret `NUGET_USER` with the nuget.org profile name: `gh secret set NUGET_USER --repo igortessaro/tessaro-results` | owner | |
+| 4 | `release` environment: the owner is the required reviewer, and only `v*` tags may deploy (commands below) | Claude, after the owner confirms | |
+| 5 | Tag ruleset `release-tags`: only admins create, update or delete `v*` tags (command below) | Claude, after the owner confirms | |
 
-**Tag ruleset:**
-
-```bash
-gh api -X POST repos/igortessaro/tessaro-results/rulesets --input .github/rulesets/release-tags.json
-```
-
-**`release` environment:** the owner is the required reviewer, and only `v*` tags may deploy.
+**Step 4 — `release` environment** (reviewer: user id `14225541`, `igortessaro`):
 
 ```bash
 gh api -X PUT repos/igortessaro/tessaro-results/environments/release --input - <<'EOF'
@@ -123,4 +119,10 @@ gh api -X PUT repos/igortessaro/tessaro-results/environments/release --input - <
 EOF
 gh api -X POST repos/igortessaro/tessaro-results/environments/release/deployment-branch-policies \
   -f name='v*' -f type=tag
+```
+
+**Step 5 — tag ruleset:**
+
+```bash
+gh api -X POST repos/igortessaro/tessaro-results/rulesets --input .github/rulesets/release-tags.json
 ```

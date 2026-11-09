@@ -4,6 +4,7 @@
 > throwing, and compose outcomes with `Map`, `Bind` and `Match`.
 
 [![CI](https://github.com/igortessaro/tessaro-results/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/igortessaro/tessaro-results/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/vpre/Tessaro.Results)](https://www.nuget.org/packages/Tessaro.Results)
 
 ```csharp
 using Tessaro;
@@ -29,11 +30,11 @@ public async Task<Result<Quote>> Handle(UpdateQuoteStatus request)
 
 ## Installation
 
-> Not on nuget.org yet: the first release is planned in a follow-up spec. Until then, reference the project or a locally packed package.
-
 ```bash
-dotnet add package Tessaro.Results
+dotnet add package Tessaro.Results --prerelease
 ```
+
+`--prerelease` is needed while only release candidates (`0.1.0-rc.N`) are published.
 
 All public types live in the `Tessaro` namespace (the same as [Tessaro.Optional](https://github.com/igortessaro/tessaro-optional)):
 
