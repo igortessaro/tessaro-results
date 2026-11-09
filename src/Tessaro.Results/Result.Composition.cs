@@ -54,6 +54,23 @@ public partial class Result
         return IsSuccess ? NotNull(next(), NextReturnedNull) : ToFailure<TOut>();
     }
 
+    /// <summary>
+    /// Handles both outcomes in one expression: returns <paramref name="onSuccess"/>() on a success,
+    /// or <paramref name="onFailure"/> applied to every error on a failure. Only one delegate runs.
+    /// </summary>
+    /// <typeparam name="TOut">The type both branches return.</typeparam>
+    /// <param name="onSuccess">Produces the outcome of a success.</param>
+    /// <param name="onFailure">Produces the outcome of a failure from all its errors, in order.</param>
+    /// <returns>The value returned by the delegate that ran.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="onSuccess"/> or <paramref name="onFailure"/> is <see langword="null"/> (on a success or a failure).</exception>
+    public TOut Match<TOut>(Func<TOut> onSuccess, Func<IReadOnlyList<Error>, TOut> onFailure)
+    {
+        ArgumentNullException.ThrowIfNull(onSuccess);
+        ArgumentNullException.ThrowIfNull(onFailure);
+
+        return IsSuccess ? onSuccess() : onFailure(_errors);
+    }
+
     private protected static TValue NotNull<TValue>(TValue value, string message) =>
         value is null ? throw new InvalidOperationException(message) : value;
 }

@@ -20,11 +20,13 @@ Tessaro.Result.Errors.get -> System.Collections.Generic.IReadOnlyList<Tessaro.Er
 Tessaro.Result.IsFailure.get -> bool
 Tessaro.Result.IsSuccess.get -> bool
 Tessaro.Result.Map<TOut>(System.Func<TOut>! mapper) -> Tessaro.Result<TOut>!
+Tessaro.Result.Match<TOut>(System.Func<TOut>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, TOut>! onFailure) -> TOut
 Tessaro.Result.ToFailure<T>() -> Tessaro.Result<T>!
 Tessaro.Result<T>
 Tessaro.Result<T>.Bind(System.Func<T, Tessaro.Result!>! next) -> Tessaro.Result!
 Tessaro.Result<T>.Bind<TOut>(System.Func<T, Tessaro.Result<TOut>!>! next) -> Tessaro.Result<TOut>!
 Tessaro.Result<T>.Map<TOut>(System.Func<T, TOut>! mapper) -> Tessaro.Result<TOut>!
+Tessaro.Result<T>.Match<TOut>(System.Func<T, TOut>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, TOut>! onFailure) -> TOut
 Tessaro.Result<T>.Value.get -> T
 override Tessaro.Error.Equals(object? obj) -> bool
 override Tessaro.Error.GetHashCode() -> int
