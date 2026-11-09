@@ -31,10 +31,8 @@ public async Task<Result<Quote>> Handle(UpdateQuoteStatus request)
 ## Installation
 
 ```bash
-dotnet add package Tessaro.Results --prerelease
+dotnet add package Tessaro.Results
 ```
-
-`--prerelease` is needed while only release candidates (`0.1.0-rc.N`) are published.
 
 All public types live in the `Tessaro` namespace (the same as [Tessaro.Optional](https://github.com/igortessaro/tessaro-optional)):
 
