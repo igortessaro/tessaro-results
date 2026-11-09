@@ -1,0 +1,27 @@
+#nullable enable
+Tessaro.Error
+Tessaro.Error.<Clone>$() -> Tessaro.Error!
+Tessaro.Error.Code.get -> string!
+Tessaro.Error.Equals(Tessaro.Error? other) -> bool
+Tessaro.Error.Message.get -> string!
+Tessaro.Error.Type.get -> Tessaro.ErrorType
+Tessaro.ErrorType
+Tessaro.ErrorType.Conflict = 3 -> Tessaro.ErrorType
+Tessaro.ErrorType.Failure = 0 -> Tessaro.ErrorType
+Tessaro.ErrorType.Forbidden = 5 -> Tessaro.ErrorType
+Tessaro.ErrorType.NotFound = 2 -> Tessaro.ErrorType
+Tessaro.ErrorType.Unauthorized = 4 -> Tessaro.ErrorType
+Tessaro.ErrorType.Unexpected = 6 -> Tessaro.ErrorType
+Tessaro.ErrorType.Validation = 1 -> Tessaro.ErrorType
+override Tessaro.Error.Equals(object? obj) -> bool
+override Tessaro.Error.GetHashCode() -> int
+override Tessaro.Error.ToString() -> string!
+static Tessaro.Error.Conflict(string! code, string! message) -> Tessaro.Error!
+static Tessaro.Error.Failure(string! code, string! message) -> Tessaro.Error!
+static Tessaro.Error.Forbidden(string! code, string! message) -> Tessaro.Error!
+static Tessaro.Error.NotFound(string! code, string! message) -> Tessaro.Error!
+static Tessaro.Error.Unauthorized(string! code, string! message) -> Tessaro.Error!
+static Tessaro.Error.Unexpected(string! code, string! message) -> Tessaro.Error!
+static Tessaro.Error.Validation(string! code, string! message) -> Tessaro.Error!
+static Tessaro.Error.operator !=(Tessaro.Error? left, Tessaro.Error? right) -> bool
+static Tessaro.Error.operator ==(Tessaro.Error? left, Tessaro.Error? right) -> bool
