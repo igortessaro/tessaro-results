@@ -15,7 +15,7 @@ namespace Tessaro;
 /// The conversion from a value does not apply when the value's static type is an interface (a C#
 /// rule); use <see cref="Result.Ok{T}(T)"/> there.</para>
 /// </remarks>
-public sealed class Result<T> : Result where T : notnull
+public sealed partial class Result<T> : Result where T : notnull
 {
     private readonly T _value;
 
