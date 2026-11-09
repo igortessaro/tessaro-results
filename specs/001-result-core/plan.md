@@ -209,6 +209,11 @@ SonarCloud analysis; `pr-title.yml` (ADR 0005); `release.yml`, dormant until the
 `Deps |` prefix; rulesets as code under `.github/rulesets/`. Workflows set
 `defaults.run.shell: bash`; actions are pinned as in the reference.
 
+*Amended 2026-11-09 (T01):* the copied `build-test` job installed the .NET 8 runtime for
+`net8.0` tests; with `net10.0` only (resolved question 1) that step was removed and the SDK from
+`global.json` runs the tests. The script tests' `ac "AC-x.y"` labels referred to tessaro-optional's
+spec 002 and collided with this spec's AC IDs, so they were renamed to `pr-title` and `release-guard`.
+
 ## 7. One-time setup
 
 | # | Step | Who |

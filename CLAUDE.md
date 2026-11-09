@@ -32,6 +32,30 @@ replaces the `Response.cs` classes copied across the FIAP-SOAT-Net services.
 - Name design patterns explicitly when you use one, and only when they simplify.
 - XML docs on every public member.
 
+## Commands
+
+Tests run on Microsoft.Testing.Platform (opted in via `global.json`), so `dotnet test` takes
+`--solution`/`--project` and runner options directly (no `--` separator).
+
+```bash
+dotnet build Tessaro.Results.slnx -c Release                        # build (warnings are errors)
+dotnet test --solution Tessaro.Results.slnx -c Release              # run tests (net10.0)
+dotnet test --solution Tessaro.Results.slnx -c Release \
+  --coverlet --coverlet-output-format opencover \
+  --coverlet-threshold 80 --coverlet-threshold-type line --coverlet-threshold-type branch   # coverage gate
+dotnet format Tessaro.Results.slnx --verify-no-changes              # style gate
+dotnet pack src/Tessaro.Results/Tessaro.Results.csproj -c Release   # package (version from git tags via MinVer)
+for t in tests/scripts/*.test.sh; do bash "$t"; done                # CI script tests
+```
+
+A test run with zero tests exits with code 8 (MTP "zero tests ran"); a run below the coverage
+threshold exits with code 14.
+
+## Project board
+
+Every task issue is on the [Tessaro.Results board](https://github.com/users/igortessaro/projects/4):
+move its card to **In Progress** when the task starts; merging the PR that closes the issue moves it to **Done**.
+
 ## Collaboration
 
 - Igor wants to evolve this workflow: when an instruction is worth turning into a skill,

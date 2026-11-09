@@ -8,7 +8,8 @@
 > previous one. Execute each with the `sdd-task` skill.
 
 **Progress is tracked on GitHub**, not in this file: one issue per task in milestone
-[001 — Result core](https://github.com/igortessaro/tessaro-results/milestone/1), labelled `task`. This file holds the *what* of each task;
+[001 — Result core](https://github.com/igortessaro/tessaro-results/milestone/1), labelled `task`, on the
+[Tessaro.Results board](https://github.com/users/igortessaro/projects/4). This file holds the *what* of each task;
 the issue holds its *state* (one source of truth each).
 
 ---

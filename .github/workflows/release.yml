@@ -1,0 +1,148 @@
+name: Release
+
+# Publishes Tessaro.Results to nuget.org when the owner pushes a version tag:
+#   guard → ci (quality gates) → pack (API validation) → publish (owner approval, nuget.org, GitHub Release)
+on:
+  push:
+    tags: ['v*']
+
+permissions: {} # every job asks for exactly what it needs
+
+concurrency:
+  group: release
+  cancel-in-progress: false # never stop a release halfway
+
+defaults:
+  run:
+    shell: bash # = bash -eo pipefail: a failing command anywhere in a pipeline fails the step
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  PROJECT: src/Tessaro.Results/Tessaro.Results.csproj
+
+jobs:
+  guard:
+    name: guard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.info.outputs.version }}
+      prerelease: ${{ steps.info.outputs.prerelease }}
+      baseline: ${{ steps.info.outputs.baseline }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # tags for the baseline, origin/main for the on-main check
+
+      - name: Validate the tag and compute release info
+        id: info
+        env:
+          TAG: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          info="$(bash .github/scripts/release-info.sh "$TAG" "$SHA")" # a rejection fails the step here
+          echo "$info" | tee -a "$GITHUB_OUTPUT"
+
+  ci:
+    name: ci
+    needs: guard
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml # no secrets passed: same gates as PRs, SonarCloud skipped
+
+  pack:
+    name: pack
+    needs: [guard, ci]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # MinVer reads the version from the tag
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Pack with API validation against the baseline
+        env:
+          BASELINE: ${{ needs.guard.outputs.baseline }}
+        run: |
+          args=(-c Release -o artifacts -p:EnablePackageValidation=true)
+          if [ -n "$BASELINE" ]; then
+            args+=("-p:PackageValidationBaselineVersion=$BASELINE")
+          fi
+          dotnet pack "$PROJECT" "${args[@]}"
+
+      - name: Check the package version and dependencies
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          nupkg="artifacts/Tessaro.Results.$VERSION.nupkg"
+          if [ ! -f "$nupkg" ] || [ ! -f "${nupkg%.nupkg}.snupkg" ]; then
+            echo "::error::Expected $nupkg and its .snupkg; found: $(ls artifacts)"
+            exit 1
+          fi
+          nuspec="$(unzip -p "$nupkg" '*.nuspec')" # read first: with pipefail, grep -q could SIGPIPE unzip
+          if grep -q '<dependency ' <<<"$nuspec"; then
+            echo "::error::The package must have no dependencies (zero-dependency rule)"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: publish
+    needs: [guard, pack]
+    runs-on: ubuntu-latest
+    environment:
+      name: release # the owner approves here; nuget.org trusts only this environment
+      url: https://www.nuget.org/packages/Tessaro.Results/${{ needs.guard.outputs.version }}
+    permissions:
+      contents: write     # create the GitHub Release
+      id-token: write     # OIDC for Trusted Publishing and attestations
+      attestations: write # build provenance
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: artifacts
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: artifacts/*.nupkg
+
+      - name: NuGet login (OIDC → short-lived API key)
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push to nuget.org # no --skip-duplicate: an existing version fails the release
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          PRERELEASE: ${{ needs.guard.outputs.prerelease }}
+        run: |
+          args=("$TAG" artifacts/*.nupkg artifacts/*.snupkg
+            --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --generate-notes)
+          if [ "$PRERELEASE" = "true" ]; then
+            args+=(--prerelease --latest=false)
+          fi
+          gh release create "${args[@]}"

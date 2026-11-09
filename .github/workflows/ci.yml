@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_call: # reused by release.yml; called without secrets, so the SonarCloud steps skip themselves
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SOLUTION: Tessaro.Results.slnx
+
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Verify formatting
+        run: dotnet format "$SOLUTION" --verify-no-changes
+
+  scripts:
+    name: scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: ShellCheck # preinstalled on GitHub-hosted Ubuntu runners
+        run: shellcheck .github/scripts/*.sh tests/scripts/*.sh
+
+      - name: actionlint # lints the workflows, including the shell inside run steps
+        run: >
+          docker run --rm --volume "$PWD:/repo" --workdir /repo
+          rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+          -color
+
+      - name: Script tests
+        run: |
+          for test in tests/scripts/*.test.sh; do
+            bash "$test"
+          done
+
+  build-test:
+    name: build-test
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # MinVer needs tags; SonarCloud needs history for blame and new-code detection
+
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        if: env.SONAR_TOKEN != ''
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json # the SDK's own runtime runs the net10.0 tests
+
+      - name: Restore
+        run: |
+          dotnet tool restore
+          dotnet restore "$SOLUTION"
+
+      - name: Begin SonarCloud analysis
+        if: env.SONAR_TOKEN != ''
+        run: >
+          dotnet sonarscanner begin
+          /k:"igortessaro_tessaro-results"
+          /o:"igortessaro"
+          /d:sonar.host.url="https://sonarcloud.io"
+          /d:sonar.token="$SONAR_TOKEN"
+          /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.opencover.*.xml"
+          /d:sonar.qualitygate.wait=true
+
+      - name: Build
+        run: dotnet build "$SOLUTION" -c Release --no-restore
+
+      - name: Test with coverage gate (80 % line and branch)
+        run: >
+          dotnet test --solution "$SOLUTION" -c Release --no-build
+          --results-directory TestResults
+          --coverlet --coverlet-output-format opencover
+          --coverlet-threshold 80
+          --coverlet-threshold-type line --coverlet-threshold-type branch
+
+      - name: End SonarCloud analysis
+        if: env.SONAR_TOKEN != ''
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
