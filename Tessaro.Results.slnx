@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tessaro.Results/Tessaro.Results.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tessaro.Results.Tests/Tessaro.Results.Tests.csproj" />
+  </Folder>
+</Solution>
