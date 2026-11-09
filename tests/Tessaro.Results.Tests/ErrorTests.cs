@@ -96,7 +96,7 @@ public class ErrorTests
     [Trait("AC", "AC-3.4")]
     public void Errors_differing_in_code_message_or_type_are_not_equal(string code, string message, ErrorType type)
     {
-        Error reference = Error.NotFound(Code, Message);
+        var reference = Error.NotFound(Code, Message);
         Error other = Create(type, code, message);
 
         reference.ShouldNotBe(other);
