@@ -107,8 +107,8 @@ the owner's accounts or credentials; Claude never handles them.
 | 1 | nuget.org: the `Tessaro` ID prefix is reserved to the owner's account (*Account → Prefix reservation*) | owner | |
 | 2 | nuget.org: a *Trusted Publishing* policy — package `Tessaro.Results`, scope "Push new packages and package versions", repository `igortessaro/tessaro-results`, workflow `release.yml`, environment `release` | owner | |
 | 3 | Secret `NUGET_USER` with the nuget.org profile name: `gh secret set NUGET_USER --repo igortessaro/tessaro-results` | owner | |
-| 4 | `release` environment: the owner is the required reviewer, and only `v*` tags may deploy (commands below) | Claude, after the owner confirms | |
-| 5 | Tag ruleset `release-tags`: only admins create, update or delete `v*` tags (command below) | Claude, after the owner confirms | |
+| 4 | `release` environment: the owner is the required reviewer, and only `v*` tags may deploy (commands below) | Claude, after the owner confirms | 2026-11-09 (reviewer `igortessaro`, deploy from tags `v*`) |
+| 5 | Tag ruleset `release-tags`: only admins create, update or delete `v*` tags (command below) | Claude, after the owner confirms | 2026-11-09 (ruleset id 26897681) |
 
 **Step 4 — `release` environment** (reviewer: user id `14225541`, `igortessaro`):
 
