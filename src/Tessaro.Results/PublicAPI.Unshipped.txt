@@ -17,6 +17,7 @@ Tessaro.Result
 Tessaro.Result.Errors.get -> System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!
 Tessaro.Result.IsFailure.get -> bool
 Tessaro.Result.IsSuccess.get -> bool
+Tessaro.Result.ToFailure<T>() -> Tessaro.Result<T>!
 Tessaro.Result<T>
 Tessaro.Result<T>.Value.get -> T
 override Tessaro.Error.Equals(object? obj) -> bool
