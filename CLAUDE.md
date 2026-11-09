@@ -48,6 +48,13 @@ dotnet pack src/Tessaro.Results/Tessaro.Results.csproj -c Release   # package (v
 for t in tests/scripts/*.test.sh; do bash "$t"; done                # CI script tests
 ```
 
+AC traceability runs **per spec**, on that spec's test files (AC IDs repeat across specs; spec 002+
+tests carry `[Trait("Spec", "NNN")]`). In bash (macOS bash 3.2 has no `mapfile`):
+
+```bash
+bash -c 'T=tests/Tessaro.Results.Tests; f=(); while read -r x; do f+=("$x"); done < <(grep -l "Trait(\"Spec\", \"002\")" $T/*.cs $T/Compatibility/*.cs); bash ~/.claude/skills/sdd/scripts/check-ac-traceability.sh --marker "Trait\(\"AC\"" specs/002-async-composition/spec.md "${f[@]}"'
+```
+
 A test run with zero tests exits with code 8 (MTP "zero tests ran"); a run below the coverage
 threshold exits with code 14.
 

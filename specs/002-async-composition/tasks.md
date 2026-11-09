@@ -1,7 +1,8 @@
 # Tasks 002 — Async composition
 
 **Status:** Approved (2026-11-09) · **Created:** 2026-11-09
-**Spec:** [002](spec.md) (Approved 2026-11-09) · **Plan:** [002](plan.md) (Approved 2026-11-09)
+**Spec:** [002](spec.md) (Implemented 2026-11-09) · **Plan:** [002](plan.md) (Approved 2026-11-09)
+**Retrospective:** [retrospective.md](retrospective.md) (2026-11-09)
 
 > Ordered, small, independently verifiable steps that implement plan 002. Each task is **one
 > branch and one pull request**. Tasks run in order: each one builds on the merged result of the

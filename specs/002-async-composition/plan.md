@@ -1,7 +1,7 @@
 # Plan 002 — Async composition
 
 **Status:** Approved (2026-11-09) · **Created:** 2026-11-09
-**Spec:** [002 — Async composition](spec.md) (Approved 2026-11-09) · **Constitution:** [v1.0.0](../../docs/constitution.md)
+**Spec:** [002 — Async composition](spec.md) (Implemented 2026-11-09) · **Constitution:** [v1.0.0](../../docs/constitution.md)
 
 > This plan defines **how** spec 002 is built. The ordered implementation steps belong in `tasks.md`.
 

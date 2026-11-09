@@ -24,6 +24,7 @@ public async Task<Result<Quote>> Handle(UpdateQuoteStatus request)
 - **Every error kept:** a failure holds a read-only, non-empty list of errors, and every operation passes all of them on.
 - **Transport-agnostic:** errors have a category (`NotFound`, `Validation`, …), never an HTTP status code.
 - **Fail fast:** `null` values, `null` delegates and empty error lists are rejected immediately.
+- **Async-friendly:** `MapAsync`, `BindAsync` and `MatchAsync` compose pending results (`Task<Result<T>>`) and async steps with the same rules.
 - **Zero runtime dependencies** — only the .NET base class library. Targets `net10.0`.
 
 ## Installation
@@ -153,13 +154,53 @@ where `StatusFor` maps the category with this table (an adapter package may prov
 | `Conflict` | 409 |
 | `Unexpected` | 500 |
 
+### Async
+
+Every member that returns a `Task` ends with `Async` ([ADR 0006](docs/adr/0006-async-members-end-with-async.md)).
+On a **pending result** (`Task<Result<T>>` or `Task<Result>`) the steps can be synchronous or asynchronous:
+
+```csharp
+public Task<Result<ServiceOrder>> Handle(UpdateStatus request, CancellationToken ct) =>
+    repository.FindAsync(request.Id, ct)                              // Task<Result<ServiceOrder>>
+        .BindAsync(order => order.ChangeStatus(request.Status))      // sync step on a pending result
+        .BindAsync(order => repository.UpdateAsync(order, ct))       // async step
+        .MapAsync(order => repository.GetDetailedAsync(order.Id, ct)); // async mapper
+```
+
+`MatchAsync` turns a pending result into a response in one expression:
+
+```csharp
+public async Task<IResult> Update(Guid id, UpdateStatusRequest body, CancellationToken ct) =>
+    await mediator.Send(body.ToCommand(id), ct)                      // Task<Result<ServiceOrder>>
+        .MapAsync(ServiceOrderDto.From)
+        .MatchAsync(dto => TypedResults.Ok(dto), errors => errors.ToProblem()); // ToProblem: your mapping (spec 001 §5)
+```
+
+On a **completed result**, `MapAsync`/`BindAsync`/`MatchAsync` take asynchronous steps:
+
+```csharp
+Result<ServiceOrder> saved = await order.ChangeStatus("approved").BindAsync(o => repository.UpdateAsync(o, ct));
+```
+
+- A failure passes every error on and no later step runs.
+- `null` arguments throw **when you call** the member, before anything is awaited.
+- Exceptions and cancellation from the pending result or a step reach you unchanged — they never become failures.
+- The library never resumes on your synchronization context (`ConfigureAwait(false)`).
+- The synchronous `Map` refuses an async mapper at compile time, instead of returning a result that holds an unawaited task:
+
+```csharp
+var wrong = result.Map(o => repository.GetDetailedAsync(o.Id, ct)); // does not compile (CS0619): use MapAsync
+```
+
 ## Known limitations
 
 - **Call the factories on `Result`.** `Result<Quote>.Ok()` compiles (static members are inherited) but returns a `Result`; assigning it to a `Result<Quote>` is a compile error.
 - **No implicit conversion from an interface-typed value.** C# does not allow it: `IReadOnlyList<int> items; return items;` does not compile. Use `Result.Ok(items)`, or return a concrete type.
 - **`T` must not be `Error`.** `Result<Error>` makes the two implicit conversions ambiguous.
 - **`Bind` with a lambda that returns a plain value** does not infer the type: use `Map`, or write `Bind<string>(…)`.
-- **No async helpers yet** (`Map`/`Bind`/`Match` over `Task<Result<T>>`): `await` first, then compose.
+- **`Map<T>(x => null!)` with an explicit type argument is ambiguous** (because of the async guard above): type the `null`, e.g. `Map<string>(_ => (string)null!)`.
+- **On a completed result, `BindAsync` takes only async steps**; for a synchronous step use `Bind`.
+- **No `ValueTask`, `CancellationToken` parameters or side-effect steps (`Tap`) yet**; steps capture the caller's token, as in the handler above.
 
 ## Migrating from `Response.cs`
 
@@ -184,6 +225,7 @@ For services that copied `Response` / `Response<T>` / `ResponseFactory` (FluentR
 - [Constitution](docs/constitution.md) — principles and quality gates.
 - [Architecture decisions](docs/adr/) — e.g. why `Result<T>` derives from `Result` ([ADR 0001](docs/adr/0001-result-of-t-derives-from-result.md)) and why there is no status code ([ADR 0003](docs/adr/0003-transport-agnostic-core.md)).
 - [Spec 001 — Result core](specs/001-result-core/spec.md), its [plan](specs/001-result-core/plan.md) and [tasks](specs/001-result-core/tasks.md).
+- [Spec 002 — Async composition](specs/002-async-composition/spec.md), its [plan](specs/002-async-composition/plan.md) and [tasks](specs/002-async-composition/tasks.md).
 - [Contributing](CONTRIBUTING.md).
 
 ## License
