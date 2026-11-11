@@ -1,1 +1,15 @@
 #nullable enable
+Tessaro.ResultSideEffectExtensions
+static Tessaro.ResultSideEffectExtensions.OnFailure<TResult>(this TResult! result, System.Action<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnFailure<TResult>(this TResult! result, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnFailureAsync<TResult>(this TResult! result, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<T, TOut>(this Tessaro.Result<T>! result, System.Func<T, TOut!>! action) -> Tessaro.Result<T>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<T>(this Tessaro.Result<T>! result, System.Action<T>! action) -> Tessaro.Result<T>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<T>(this Tessaro.Result<T>! result, System.Func<T, System.Threading.Tasks.Task!>! action) -> Tessaro.Result<T>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<TResult, TOut>(this TResult! result, System.Func<TOut!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<TResult>(this TResult! result, System.Action! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<TResult>(this TResult! result, System.Func<System.Threading.Tasks.Task!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T, TOut>(this Tessaro.Result<T>! result, System.Func<T, System.Threading.Tasks.Task<TOut!>!>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T>(this Tessaro.Result<T>! result, System.Func<T, System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult, TOut>(this TResult! result, System.Func<System.Threading.Tasks.Task<TOut!>!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult>(this TResult! result, System.Func<System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<TResult!>!
