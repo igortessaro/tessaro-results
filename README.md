@@ -26,6 +26,7 @@ public async Task<Result<Quote>> Handle(UpdateQuoteStatus request)
 - **Transport-agnostic:** errors have a category (`NotFound`, `Validation`, …), never an HTTP status code.
 - **Fail fast:** `null` values, `null` delegates and empty error lists are rejected immediately.
 - **Async-friendly:** `MapAsync`, `BindAsync` and `MatchAsync` compose pending results (`Task<Result<T>>`) and async steps with the same rules.
+- **Side effects in the chain:** `OnSuccess` and `OnFailure` (and their `Async` forms) publish, log or audit on one outcome and pass the same result on.
 - **Zero runtime dependencies** — only the .NET base class library. Targets `net10.0`.
 
 ## Installation
@@ -191,6 +192,47 @@ Result<ServiceOrder> saved = await order.ChangeStatus("approved").BindAsync(o =>
 var wrong = result.Map(o => repository.GetDetailedAsync(o.Id, ct)); // does not compile (CS0619): use MapAsync
 ```
 
+### Side effects
+
+`OnSuccess` runs an action after a success, `OnFailure` after a failure (with **every** error), and
+both pass the **same result** on: nothing is transformed or re-created, and a `Result<Quote>` stays a
+`Result<Quote>`. The action of the other outcome never runs.
+
+```csharp
+public Task<Result<Quote>> Handle(UpdateQuoteStatus request, CancellationToken ct) =>
+    repository.FindAsync(request.Id, ct)                                  // Task<Result<Quote>>
+        .BindAsync(quote => quote.ChangeStatus(request.Status))
+        .BindAsync(quote => repository.UpdateAsync(quote, ct))
+        .OnSuccessAsync(quote => mediator.Publish(new QuoteStatusChanged(quote), ct)) // awaited
+        .OnFailureAsync(errors => logger.LogWarning("Quote {Id} not updated: {Errors}", request.Id, errors));
+```
+
+On a completed result the synchronous steps chain like `Map` and `Bind`:
+
+```csharp
+Result<string> status = result
+    .OnSuccess(quote => audit.Add($"quote {quote.Id} is {quote.Status}"))
+    .OnFailure(errors => audit.Add($"{errors.Count} error(s)"))
+    .Map(quote => quote.Status);
+
+Result outcome = await mediator.Send(command, ct);
+outcome.OnFailure(errors => logger.LogWarning("Message {Tag} had errors: {Errors}", tag, errors));
+channel.BasicAck(tag, multiple: false);                                   // ack either way
+```
+
+- `OnSuccessAsync`/`OnFailureAsync` **await** the action before the chain continues; on a pending
+  result they also take synchronous actions, on a completed result only asynchronous ones.
+- An exception or cancellation from an action reaches you unchanged — it never becomes a failure.
+- The compiler refuses the two mistakes that would silently lose work:
+
+```csharp
+result.OnSuccess(q => mediator.Publish(new QuoteStatusChanged(q), ct)); // does not compile (CS0619): use OnSuccessAsync
+pending.OnSuccessAsync(q => repository.UpdateAsync(q, ct));             // does not compile (CS0619): use BindAsync
+```
+
+The first would never await the task (an `async` lambda would become `async void`); the second
+would ignore a failed update. An operation that can fail belongs in `Bind`/`BindAsync`.
+
 ## Known limitations
 
 - **Call the factories on `Result`.** `Result<Quote>.Ok()` compiles (static members are inherited) but returns a `Result`; assigning it to a `Result<Quote>` is a compile error.
@@ -199,7 +241,11 @@ var wrong = result.Map(o => repository.GetDetailedAsync(o.Id, ct)); // does not 
 - **`Bind` with a lambda that returns a plain value** does not infer the type: use `Map`, or write `Bind<string>(…)`.
 - **`Map<T>(x => null!)` with an explicit type argument is ambiguous** (because of the async guard above): type the `null`, e.g. `Map<string>(_ => (string)null!)`.
 - **On a completed result, `BindAsync` takes only async steps**; for a synchronous step use `Bind`.
-- **No `ValueTask`, `CancellationToken` parameters or side-effect steps (`Tap`) yet**; steps capture the caller's token, as in the handler above.
+- **No `ValueTask` or `CancellationToken` parameters**; steps capture the caller's token, as in the handler above. An action returning a `ValueTask` is not guarded: `OnSuccess` discards it.
+- **`OnSuccess(Console.WriteLine)` is ambiguous** when a method group has overloads both with and without one argument: use a lambda, `q => Console.WriteLine(q)`.
+- **An action that only throws** (`OnSuccess(q => throw …)`) hits the `Task` guard: call a method that throws instead.
+- **A block lambda that discards a task** (`OnSuccess(q => { mediator.Publish(q, ct); })`) compiles: the guards only see a lambda's return type.
+- **An untyped `null` action** (`OnFailure(null!)`) binds to a guard and does not compile: type it, e.g. `(Action<IReadOnlyList<Error>>)null!`.
 
 ## Migrating from `Response.cs`
 
@@ -225,6 +271,7 @@ For services that copied `Response` / `Response<T>` / `ResponseFactory` (FluentR
 - [Architecture decisions](docs/adr/) — e.g. why `Result<T>` derives from `Result` ([ADR 0001](docs/adr/0001-result-of-t-derives-from-result.md)) and why there is no status code ([ADR 0003](docs/adr/0003-transport-agnostic-core.md)).
 - [Spec 001 — Result core](specs/001-result-core/spec.md), its [plan](specs/001-result-core/plan.md) and [tasks](specs/001-result-core/tasks.md).
 - [Spec 002 — Async composition](specs/002-async-composition/spec.md), its [plan](specs/002-async-composition/plan.md) and [tasks](specs/002-async-composition/tasks.md).
+- [Spec 004 — Side-effect steps](specs/004-side-effect-steps/spec.md), its [plan](specs/004-side-effect-steps/plan.md) and [tasks](specs/004-side-effect-steps/tasks.md).
 - [Contributing](CONTRIBUTING.md).
 
 ## License
