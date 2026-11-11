@@ -1,7 +1,7 @@
 # Plan 004 — Side-effect steps
 
 **Status:** Approved (2026-11-11) · **Created:** 2026-11-11
-**Spec:** [004 — Side-effect steps](spec.md) (Approved 2026-11-11) · **Constitution:** [v1.0.0](../../docs/constitution.md)
+**Spec:** [004 — Side-effect steps](spec.md) (Implemented 2026-11-11) · **Constitution:** [v1.0.0](../../docs/constitution.md)
 
 > This plan defines **how** spec 004 is built. The ordered implementation steps belong in `tasks.md`.
 

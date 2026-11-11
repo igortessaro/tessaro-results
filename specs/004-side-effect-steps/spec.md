@@ -1,6 +1,7 @@
 # Spec 004 — Side-effect steps
 
-**Status:** Approved (2026-11-11) · **Created:** 2026-11-11
+**Status:** Implemented (2026-11-11) · **Approved:** 2026-11-11 · **Created:** 2026-11-11
+**Retrospective:** [retrospective.md](retrospective.md) (2026-11-11)
 **Constitution:** [v1.0.0](../../docs/constitution.md) · **ADRs:** [0001](../../docs/adr/0001-result-of-t-derives-from-result.md), [0002](../../docs/adr/0002-error-model.md), [0006](../../docs/adr/0006-async-members-end-with-async.md)
 **Builds on:** [spec 001 — Result core](../001-result-core/spec.md) and [spec 002 — Async composition](../002-async-composition/spec.md) (both Implemented 2026-11-09)
 *Amended 2026-11-11 with plan 004 approval: AC-5.3 added (plan resolved question 1).*
