@@ -49,10 +49,11 @@ for t in tests/scripts/*.test.sh; do bash "$t"; done                # CI script 
 ```
 
 AC traceability runs **per spec**, on that spec's test files (AC IDs repeat across specs; spec 002+
-tests carry `[Trait("Spec", "NNN")]`). In bash (macOS bash 3.2 has no `mapfile`):
+tests carry `[Trait("Spec", "NNN")]`, spec 001's carry none). The script filters the files itself:
 
 ```bash
-bash -c 'T=tests/Tessaro.Results.Tests; f=(); while read -r x; do f+=("$x"); done < <(grep -l "Trait(\"Spec\", \"002\")" $T/*.cs $T/Compatibility/*.cs); bash ~/.claude/skills/sdd/scripts/check-ac-traceability.sh --marker "Trait\(\"AC\"" specs/002-async-composition/spec.md "${f[@]}"'
+bash ~/.claude/skills/sdd/scripts/check-ac-traceability.sh --marker 'Trait\("AC"' --files-with 'Trait\("Spec", "004"\)' specs/004-side-effect-steps/spec.md tests/Tessaro.Results.Tests
+bash ~/.claude/skills/sdd/scripts/check-ac-traceability.sh --marker 'Trait\("AC"' --files-without 'Trait\("Spec", "00[0-9]"\)' specs/001-result-core/spec.md tests/Tessaro.Results.Tests
 ```
 
 A test run with zero tests exits with code 8 (MTP "zero tests ran"); a run below the coverage

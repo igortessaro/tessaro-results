@@ -1,7 +1,8 @@
 # Tasks 004 — Side-effect steps
 
 **Status:** Approved (2026-11-11) · **Created:** 2026-11-11
-**Spec:** [004](spec.md) (Approved 2026-11-11) · **Plan:** [004](plan.md) (Approved 2026-11-11)
+**Spec:** [004](spec.md) (Implemented 2026-11-11) · **Plan:** [004](plan.md) (Approved 2026-11-11)
+**Retrospective:** [retrospective.md](retrospective.md) (2026-11-11)
 
 > Ordered, small, independently verifiable steps that implement plan 004. Each task is **one
 > branch and one pull request**. Tasks run in order: each one builds on the merged result of the
@@ -123,6 +124,7 @@ receiver; each half is tested in exactly one task.
      groups, throw-only lambdas, block lambdas discarding a task, `ValueTask` actions).
   3. AC traceability for spec 004 on its own test files (command in `CLAUDE.md`, with
      `Trait("Spec", "004")` and `specs/004-side-effect-steps/spec.md`), and again for 001 and 002.
+     *Done 2026-11-11 with the script's new `--files-with`/`--files-without` filters (retrospective).*
   4. Tick the review checklists; spec 004 `Implemented (YYYY-MM-DD)`; `retrospective.md`, and apply
      its lessons to the skills.
 - **Done when:** the PR is merged and the milestone is closed.
