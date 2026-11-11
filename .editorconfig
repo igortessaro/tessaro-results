@@ -8,57 +8,97 @@ indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{json,yml,yaml,props,targets,csproj,slnx,xml}]
+[*.{json,yml,yaml,props,targets,csproj,slnx,xml,config}]
 indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
 
+[Makefile]
+indent_style = tab
+
 [*.cs]
+# Severity policy: every rule is either `warning` (fails `dotnet build` with TreatWarningsAsErrors,
+# `dotnet format --verify-no-changes` and CI) or `silent` (allowed, never reported).
+# No `suggestion`: suggestions never fail CI, but SonarCloud imports them as external issues.
+# Where a Sonar way rule has an IDE/CA twin, the twin is `warning` so it fails locally first.
+
 # Namespaces and usings
 csharp_style_namespace_declarations = file_scoped:warning
-dotnet_sort_system_directives_first = true
 csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+# IDE0005 (unnecessary usings) has no active Sonar way twin; in the build it needs GenerateDocumentationFile.
+dotnet_diagnostic.IDE0005.severity = warning
 
 # var
 csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
-csharp_style_var_elsewhere = false:suggestion
+csharp_style_var_elsewhere = true:warning
 
 # Expression-bodied members
-csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_operators = when_on_single_line:silent
 csharp_style_expression_bodied_properties = true:warning
-csharp_style_expression_bodied_operators = when_on_single_line:suggestion
 
-# Braces and modern syntax
+# Braces and modern syntax (S121 is not in Sonar way: the IDE is the only guard for braces)
 csharp_prefer_braces = true:warning
 csharp_style_prefer_pattern_matching = true:warning
 csharp_style_throw_expression = true:warning
-dotnet_style_prefer_conditional_expression_over_return = true:suggestion
-dotnet_style_readonly_field = true:warning
 
-# Naming: constants are PascalCase (listed first: the more specific rule wins)
+# IDE0045/IDE0046 propose nested ternaries, which Sonar S3358 flags: allowed, never proposed.
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+
+# Twins of Sonar way rules, enforced locally (EditorConfig has no trailing comments: twin on the line above)
+# IDE0044 ~ S2933 (readonly fields)
+dotnet_style_readonly_field = true:warning
+# IDE0060 ~ S1172 (unused parameters, non-public members only, like Sonar)
+dotnet_code_quality_unused_parameters = non_public
+dotnet_diagnostic.IDE0060.severity = warning
+# IDE0051 ~ S1144 (unused private members), IDE0052 ~ S4487 (unread private members)
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.IDE0052.severity = warning
+# IDE0059 ~ S1854 (unused assignments)
+csharp_style_unused_value_assignment_preference = discard_variable
+dotnet_diagnostic.IDE0059.severity = warning
+# CA1822 ~ S2325 (could be static), CA1852 ~ S3260 (seal types nobody derives from)
+dotnet_diagnostic.CA1822.severity = warning
+dotnet_diagnostic.CA1852.severity = warning
+# IDE0004 (redundant cast) ~ S1905 stays at its default: it flags casts that pick an overload on purpose.
+
+# Naming (the more specific rule is listed first). S101 covers type names only; S100 (members) is not
+# in Sonar way, and Sonar has no field-prefix rule: IDE1006 is the only guard for these.
 dotnet_naming_rule.constants_pascal_case.symbols = constants
 dotnet_naming_rule.constants_pascal_case.style = pascal_case
 dotnet_naming_rule.constants_pascal_case.severity = warning
 dotnet_naming_symbols.constants.applicable_kinds = field
 dotnet_naming_symbols.constants.required_modifiers = const
-dotnet_naming_style.pascal_case.capitalization = pascal_case
 
-# Naming: private fields are _camelCase
 dotnet_naming_rule.private_fields_underscore.symbols = private_fields
 dotnet_naming_rule.private_fields_underscore.style = underscore_camel_case
 dotnet_naming_rule.private_fields_underscore.severity = warning
 dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_rule.interfaces_begin_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_begin_with_i.style = begins_with_i
+dotnet_naming_rule.interfaces_begin_with_i.severity = warning
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+
+dotnet_naming_rule.types_and_members_pascal_case.symbols = types_and_members
+dotnet_naming_rule.types_and_members_pascal_case.style = pascal_case
+dotnet_naming_rule.types_and_members_pascal_case.severity = warning
+dotnet_naming_symbols.types_and_members.applicable_kinds = class, struct, interface, enum, delegate, property, method, event
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
 dotnet_naming_style.underscore_camel_case.required_prefix = _
 dotnet_naming_style.underscore_camel_case.capitalization = camel_case
-
-# IDE0005 (unnecessary usings) needs GenerateDocumentationFile, which is on.
-dotnet_diagnostic.IDE0005.severity = warning
+dotnet_naming_style.begins_with_i.required_prefix = I
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
 [tests/**.cs]
 # Test names use Member_Scenario_ExpectedResult.
 dotnet_diagnostic.CA1707.severity = none
-# Tests use explicit types where they make nullability or overload binding visible.
-dotnet_diagnostic.IDE0007.severity = suggestion
+# Tests may use explicit types where they make nullability or overload binding visible.
+dotnet_diagnostic.IDE0007.severity = silent
