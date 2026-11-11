@@ -38,6 +38,10 @@ result holding an unawaited task.
   `Result<Task<…>>`. Spec 002 AC-3.7 adds `[Obsolete(error: true)]` `Map` overloads for mappers
   returning a `Task`, which turn that call into a compile error pointing to `MapAsync`. `Bind`
   already rejects it (a `Task` is not a result).
+  *Amended 2026-11-11 (plan 004 spike):* the same holds for the side-effect steps of spec 004:
+  an action returning a `Task` (or an `async` lambda, which would become `async void`) converts to
+  the synchronous `OnSuccess`/`OnFailure`'s `Action`. `[Obsolete(error: true)]` overloads (spec 004
+  AC-5.1) turn those calls into a compile error pointing to `OnSuccessAsync`/`OnFailureAsync`.
 - Follows the .NET naming guideline for asynchronous methods.
 
 **Negative / trade-offs**

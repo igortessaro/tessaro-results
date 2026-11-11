@@ -3,6 +3,7 @@
 **Status:** Approved (2026-11-11) · **Created:** 2026-11-11
 **Constitution:** [v1.0.0](../../docs/constitution.md) · **ADRs:** [0001](../../docs/adr/0001-result-of-t-derives-from-result.md), [0002](../../docs/adr/0002-error-model.md), [0006](../../docs/adr/0006-async-members-end-with-async.md)
 **Builds on:** [spec 001 — Result core](../001-result-core/spec.md) and [spec 002 — Async composition](../002-async-composition/spec.md) (both Implemented 2026-11-09)
+*Amended 2026-11-11 with plan 004 approval: AC-5.3 added (plan resolved question 1).*
 
 > This spec defines **what** is offered and **why**. Signatures, file layout and tooling belong
 > in `plan.md`.
@@ -135,12 +136,14 @@ reach me unchanged, so a broken publish is never mistaken for a business failure
 ### US-5 — An asynchronous action can't be dropped by accident
 
 *As a service developer, I want the compiler to stop me from passing an asynchronous action to a
-synchronous step, so `OnSuccess(q => mediator.Publish(…))` never compiles into fire-and-forget.*
+synchronous step, or an operation that can fail to a side-effect step, so `OnSuccess(q => mediator.Publish(…))`
+never compiles into fire-and-forget and a failed update is never ignored.*
 
 | ID | Given | When | Then |
 |---|---|---|---|
 | AC-5.1 | a result (either shape) | its synchronous `OnSuccess` or `OnFailure` receives a delegate that returns a `Task` (method group, expression lambda or `async` lambda) | the code does not compile, and the message points to `OnSuccessAsync` / `OnFailureAsync` (the task would otherwise be discarded, or the lambda become `async void`) |
 | AC-5.2 | a pending result | `OnSuccessAsync` or `OnFailureAsync` receives a lambda that returns a `Task` | the task is awaited (AC-3.6), not discarded as if the lambda were synchronous |
+| AC-5.3 | a result (either shape, completed or pending) | a success step (`OnSuccess`, `OnSuccessAsync`) receives an action that returns a result, or a task of one | the code does not compile, and the message points to `Bind` / `BindAsync` (the action's errors would otherwise be lost) |
 
 ---
 
@@ -157,7 +160,7 @@ There is no `Response.cs` counterpart to deviate from (the services write these 
 | `null` delegates throw on success and failure, before awaiting | Same (AC-4.1, AC-4.2) |
 | A `null` task or a pending `null` result throws `InvalidOperationException` | Same (AC-4.3, AC-4.4) |
 | Exceptions propagate unwrapped; cancellation stays cancellation | Same (AC-4.5, AC-4.6) |
-| Synchronous `Map` refuses a `Task`-returning mapper at compile time (spec 002 AC-3.7) | Synchronous `OnSuccess`/`OnFailure` refuse a `Task`-returning action (AC-5.1) |
+| Synchronous `Map` refuses a `Task`-returning mapper at compile time (spec 002 AC-3.7) | Synchronous `OnSuccess`/`OnFailure` refuse a `Task`-returning action (AC-5.1); success steps refuse a result-returning action (AC-5.3) |
 | On a completed result, `BindAsync` takes only async steps | Same for `OnSuccessAsync`/`OnFailureAsync` (resolved question 4) |
 | `Result<T>` is a `Result` (ADR 0001) | On `Result<T>` the steps keep the value type (AC-1.4, AC-2.3, AC-3.7) |
 

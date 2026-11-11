@@ -1,6 +1,6 @@
 # Plan 004 — Side-effect steps
 
-**Status:** Draft — awaiting owner review · **Created:** 2026-11-11
+**Status:** Approved (2026-11-11) · **Created:** 2026-11-11
 **Spec:** [004 — Side-effect steps](spec.md) (Approved 2026-11-11) · **Constitution:** [v1.0.0](../../docs/constitution.md)
 
 > This plan defines **how** spec 004 is built. The ordered implementation steps belong in `tasks.md`.
@@ -39,7 +39,7 @@ All in namespace `Tessaro`, all in **one static class, `ResultSideEffectExtensio
 stands for `IReadOnlyList<Error>`. Every member that returns a `Task` ends with `Async`
 ([ADR 0006](../../docs/adr/0006-async-members-end-with-async.md)).
 
-**Why extension methods constrained to `Result`, not instance members** (open question 2): a
+**Why extension methods constrained to `Result`, not instance members** (resolved question 2): a
 side effect returns its receiver, so one generic member `TResult OnFailure<TResult>(this TResult result, …) where TResult : Result`
 serves both shapes and keeps the receiver's static type — `Result<Order>` in, `Result<Order>` out
 (AC-1.4, AC-2.3, AC-3.7) — with **one implementation** (DRY). Instance members would need a
@@ -98,7 +98,7 @@ public static Result<T> OnSuccess<T>(this Result<T> result, Func<T, Task> action
 public static TResult OnFailure<TResult>(this TResult result, Func<Errors, Task> action) where TResult : Result;   // AC-5.1
 ```
 
-**Result-returning action in a success step** (proposed AC-5.3, open question 1) — message:
+**Result-returning action in a success step** (AC-5.3, resolved question 1) — message:
 *"The action returns a result: use Bind (BindAsync), or its errors would be lost."*
 
 ```csharp
@@ -116,7 +116,7 @@ Without them, `pending.OnSuccessAsync(o => repository.UpdateAsync(o, ct))` compi
 update and **drops its failure** — the chain carries on as a success (spiked). Constitution III:
 errors are never lost. Failure steps get no such guard: the chain is already a failure.
 
-Total: 12 working members + 3 Task guards (+ 8 result guards if question 1 is accepted).
+Total: 23 public members — 12 working members, 3 Task guards and 8 result guards.
 
 ### 3.4 Behaviour details not stated in the spec
 
@@ -153,7 +153,7 @@ No change.
 - **Before awaiting** (AC-4.1/4.2): a receiver that never completes; the call must throw.
 - **AC-4.5/4.6:** throwing method, `Task.FromException`, a fault after `await Task.Yield()`,
   `Task.FromCanceled`; exact exception, and a later step's counter stays at zero.
-- **AC-5.1 (and 5.3):** reflection asserts each guard has `ObsoleteAttribute { IsError: true }` and
+- **AC-5.1, AC-5.3:** reflection asserts each guard has `ObsoleteAttribute { IsError: true }` and
   its message (`BindingFlags.DeclaredOnly` not needed: one static class). The task's consumer
   check compiles every guarded call shape and must see CS0619 (§8 R1 lists them).
 - **NFR-2:** counting `SynchronizationContext`, zero posts for a pending chain of the new members.
@@ -180,7 +180,7 @@ None. Claude creates the spec 004 milestone and `task` issues and adds them to t
 | R2 | On pending results the `Action` and `Func<…, Task>` members compete | **Spiked:** Task-returning lambdas, `async` lambdas and method groups bind to `Func<…, Task>` and are awaited (a `TaskCompletionSource` gate kept the step's task pending until released); void lambdas bind to `Action` |
 | R3 | The generic receiver `TResult : Result` also matches a `Task<…>` receiver, or loses the value type | **Spiked:** candidates whose `TResult` fails the constraint are dropped (C# 7.3+); `Result<Order>` in → `Result<Order>` out, pending too; the spec §2 chain compiles as `Task<Result<Order>>` and runs |
 | R4 | New overloads change existing call shapes (NFR-4) | **Spiked:** the new members have new names; spec 001–002's 174 tests, including the compatibility samples, pass against the prototype. `r.Map<string>(_ => (string)null!)`, `r.Map(o => o.Id)`, `pending.MapAsync(o => o.Id)` compile as before |
-| R5 | A result-returning action drops its errors (`OnSuccessAsync(o => repository.UpdateAsync(o))`) | **Found in the spike** (compiles and continues as a success). §3.3 result guards turn all 8 shapes into CS0619 pointing to `Bind`; `bool`/`int`-returning lambdas still bind to `Action` (spiked). Open question 1 |
+| R5 | A result-returning action drops its errors (`OnSuccessAsync(o => repository.UpdateAsync(o))`) | **Found in the spike** (compiles and continues as a success). §3.3 result guards turn all 8 shapes into CS0619 pointing to `Bind`; `bool`/`int`-returning lambdas still bind to `Action` (spiked). Spec AC-5.3 (resolved question 1) |
 | R6 | Overloaded method groups (`Console.WriteLine`) become ambiguous; throw-only lambdas hit the Task guard | **Found in the spike**; accepted and documented (§3.4) |
 | R7 | A consumer spike reports "compiles" for code that never compiled | Every case declares its type; the library build was checked to succeed first; the must-fail control fails |
 
@@ -188,7 +188,7 @@ None. Claude creates the spec 004 milestone and `task` issues and adds them to t
 
 | Principle / gate | How this plan complies |
 |---|---|
-| I. Simplicity | Two step names; every working member traces to an AC; guards trace to AC-5.1 (and 5.3 if accepted). No `Tap` alias, `ValueTask` or tokens |
+| I. Simplicity | Two step names; every working member traces to an AC; guards trace to AC-5.1 and AC-5.3. No `Tap` alias, `ValueTask` or tokens |
 | II. Fail fast | Receiver and action validated at the call, before awaiting; `null` tasks and results throw; guards move silent bugs to compile time |
 | III. Expected failures are values | Failures pass on as the same instance; exceptions stay exceptions; the result guards stop a step from dropping errors |
 | IV. Transport-agnostic core | No new dependency; ASP.NET Core only in the compatibility tests |
@@ -203,29 +203,22 @@ None. Claude creates the spec 004 milestone and `task` issues and adds them to t
 - A Roslyn analyzer for tasks discarded inside block lambdas (§3.4) — revisit if a service hits it.
 - Side effects on both outcomes, side effects that can fail the chain, error-type filters (spec §6).
 
-## 11. Open questions
+## 11. Resolved questions (2026-11-11, owner approved the recommendations)
 
-1. **Add the result guards (§3.3) and amend the spec with AC-5.3?** *Given a result (either
-   shape), when a success step (`OnSuccess`, `OnSuccessAsync`) receives an action that returns a
-   result or a task of one, then the code does not compile and the message points to
-   `Bind`/`BindAsync`.* The spike shows the gap is real and easy to hit
-   (`OnSuccessAsync(o => repository.UpdateAsync(o, ct))` silently ignores a failed update).
-   *Recommendation:* **yes** — 8 bodiless members hidden from IntelliSense, in exchange for
-   constitution III holding at compile time; same approach as spec 002 AC-3.7.
-2. **Extension methods constrained to `Result` (§3) instead of instance members?** It departs from
-   specs 001–002, where completed-result members are instance members. *Recommendation:* **yes** —
-   one implementation per step for both shapes, and the value type is kept without covariant
-   overrides; the only cost is the overloaded-method-group ambiguity (§3.4).
-3. **Record the new guards in ADR 0006?** *Recommendation:* **yes, a dated note** in its
-   consequences (as spec 002 did): the "never accepts an async delegate by accident" consequence
-   now also relies on the `OnSuccess`/`OnFailure` guards. No new ADR.
+1. **The 8 result guards (§3.3) are added**, and the spec gains **AC-5.3**: a success step that
+   receives an action returning a result (or a task of one) doesn't compile and points to
+   `Bind`/`BindAsync`.
+2. **Extension methods constrained to `Result`** (§3), one static class `ResultSideEffectExtensions`,
+   instead of instance members; the overloaded-method-group ambiguity is a README known limitation.
+3. **ADR 0006 gets a dated note** that its "never accepts an async delegate by accident"
+   consequence also relies on the `OnSuccess`/`OnFailure` guards. No new ADR.
 
 ## 12. Review checklist
 
-- [ ] Every acceptance criterion maps to an interface member and a test location
-- [ ] Nothing contradicts the constitution or an accepted ADR
-- [ ] Tooling choices are justified and minimal
-- [ ] CI enforces every quality gate in the constitution
-- [ ] Owner-only steps (credentials, sign-ins) are clearly separated
-- [ ] Riskiest assumptions were spiked or are explicitly open
-- [ ] Open questions answered or deferred
+- [x] Every acceptance criterion maps to an interface member and a test location
+- [x] Nothing contradicts the constitution or an accepted ADR
+- [x] Tooling choices are justified and minimal
+- [x] CI enforces every quality gate in the constitution
+- [x] Owner-only steps (credentials, sign-ins) are clearly separated
+- [x] Riskiest assumptions were spiked or are explicitly open
+- [x] Open questions answered or deferred
