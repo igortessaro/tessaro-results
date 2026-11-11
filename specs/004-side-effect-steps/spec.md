@@ -1,12 +1,11 @@
 # Spec 004 — Side-effect steps
 
-**Status:** Draft — awaiting owner review · **Created:** 2026-11-11
+**Status:** Approved (2026-11-11) · **Created:** 2026-11-11
 **Constitution:** [v1.0.0](../../docs/constitution.md) · **ADRs:** [0001](../../docs/adr/0001-result-of-t-derives-from-result.md), [0002](../../docs/adr/0002-error-model.md), [0006](../../docs/adr/0006-async-members-end-with-async.md)
 **Builds on:** [spec 001 — Result core](../001-result-core/spec.md) and [spec 002 — Async composition](../002-async-composition/spec.md) (both Implemented 2026-11-09)
 
 > This spec defines **what** is offered and **why**. Signatures, file layout and tooling belong
-> in `plan.md`. Member names below are the recommended ones (open question 1); if the owner picks
-> others, only the names in the acceptance criteria change.
+> in `plan.md`.
 
 ---
 
@@ -159,7 +158,7 @@ There is no `Response.cs` counterpart to deviate from (the services write these 
 | A `null` task or a pending `null` result throws `InvalidOperationException` | Same (AC-4.3, AC-4.4) |
 | Exceptions propagate unwrapped; cancellation stays cancellation | Same (AC-4.5, AC-4.6) |
 | Synchronous `Map` refuses a `Task`-returning mapper at compile time (spec 002 AC-3.7) | Synchronous `OnSuccess`/`OnFailure` refuse a `Task`-returning action (AC-5.1) |
-| On a completed result, `BindAsync` takes only async steps | Same for `OnSuccessAsync`/`OnFailureAsync` (open question 4) |
+| On a completed result, `BindAsync` takes only async steps | Same for `OnSuccessAsync`/`OnFailureAsync` (resolved question 4) |
 | `Result<T>` is a `Result` (ADR 0001) | On `Result<T>` the steps keep the value type (AC-1.4, AC-2.3, AC-3.7) |
 
 ## 6. Out of scope (future specs)
@@ -184,34 +183,25 @@ There is no `Response.cs` counterpart to deviate from (the services write these 
 - **NFR-4** — Adding the new members doesn't change which overload any existing call shape of
   specs 001 and 002 binds to (no new ambiguity, as found in spec 002 T01).
 
-## 8. Open questions (to resolve before the plan)
+## 8. Resolved questions (2026-11-11, owner approved the recommendations)
 
-1. **Which names, and how many members?** Candidates: `OnSuccess`/`OnFailure`;
-   `Tap`/`TapError` (CSharpFunctionalExtensions); or all three (`Tap` as an alias of `OnSuccess`).
-   *Recommendation:* **two names only, `OnSuccess` and `OnFailure`** (plus `…Async`). They mirror
-   `IsSuccess`/`IsFailure` and `Match`'s `onSuccess`/`onFailure` parameters, say which branch runs
-   without functional-programming jargon, and two names cover both branches. A `Tap` alias would be
-   a second name for the same member (DRY, YAGNI). Trade-off: older CSharpFunctionalExtensions
-   versions used `OnSuccess` for what is now `Map`/`Bind`; the README states that ours never
-   transforms.
-2. **Pass on the same instance, or an equal copy?** *Recommendation:* **the same instance**
-   (AC-1.1 et al.): nothing changed, so nothing is created; tests can check identity.
-3. **Refuse `Task`-returning actions in the synchronous steps at compile time (US-5)?** An `async`
-   lambda converts silently to a void-returning delegate (`async void`): exceptions crash the
-   process and nothing is awaited. *Recommendation:* **yes**, the same `[Obsolete(error: true)]`
-   approach as spec 002 AC-3.7, spiked in the plan (overload resolution for method groups,
-   expression lambdas and `async` lambdas, plus NFR-4). No new ADR: the plan amends
-   [ADR 0006](../../docs/adr/0006-async-members-end-with-async.md)'s consequence note, as spec 002 did.
-4. **On a completed result, should `OnSuccessAsync`/`OnFailureAsync` also take synchronous
-   actions?** *Recommendation:* **no** — consistent with `BindAsync` (README known limitation);
-   for a synchronous action on a completed result use `OnSuccess`/`OnFailure`.
-5. **Should the failure side effect also come in a form that takes no errors?**
-   *Recommendation:* **no** — one shape, like `Match`'s `onFailure`; ignore them with `_ => …`.
+1. **Two names only: `OnSuccess` and `OnFailure`**, plus `OnSuccessAsync`/`OnFailureAsync` for
+   every member that returns a `Task` ([ADR 0006](../../docs/adr/0006-async-members-end-with-async.md)).
+   No `Tap` alias (DRY, YAGNI). They mirror `IsSuccess`/`IsFailure` and `Match`'s parameters; the
+   README states that they never transform (older CSharpFunctionalExtensions used `OnSuccess` for
+   what is now `Map`/`Bind`).
+2. **The steps pass on the same instance**, not a copy (AC-1.1 et al.).
+3. **The synchronous steps refuse `Task`-returning actions at compile time** (US-5), with the
+   `[Obsolete(error: true)]` approach of spec 002 AC-3.7, spiked in the plan. No new ADR; the plan
+   amends ADR 0006's consequence note.
+4. **On a completed result, `OnSuccessAsync`/`OnFailureAsync` take only async actions**, as
+   `BindAsync` does; use `OnSuccess`/`OnFailure` for a synchronous action.
+5. **One failure-action shape**, receiving all the errors (like `Match`'s `onFailure`).
 
 ## 9. Review checklist
 
-- [ ] The services' side-effect patterns (publish after success, log after failure) are covered or listed in §6
-- [ ] Every acceptance criterion is testable as written
-- [ ] Nothing in this spec prescribes implementation details
-- [ ] Out-of-scope items are acceptable for this release
-- [ ] Open questions answered or deferred
+- [x] The services' side-effect patterns (publish after success, log after failure) are covered or listed in §6
+- [x] Every acceptance criterion is testable as written
+- [x] Nothing in this spec prescribes implementation details
+- [x] Out-of-scope items are acceptable for this release
+- [x] Open questions answered or deferred
