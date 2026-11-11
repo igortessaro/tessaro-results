@@ -33,8 +33,9 @@ public class SideEffectGuardTests
             "TOut" => typeof(Result),
             _ => typeof(Result<int>),
         })];
+        object receiver = OnCompletedReceiver(guard) ? Result.Ok(1) : Task.FromResult(Result.Ok(1));
         TargetInvocationException ex = Should.Throw<TargetInvocationException>(
-            () => guard.MakeGenericMethod(arguments).Invoke(null, [Result.Ok(1), null]));
+            () => guard.MakeGenericMethod(arguments).Invoke(null, [receiver, null]));
         ex.InnerException.ShouldBeOfType<NotSupportedException>().Message.ShouldContain(pointsTo);
     }
 
@@ -66,5 +67,47 @@ public class SideEffectGuardTests
         {
             AssertGuard(guard, pointsTo);
         }
+    }
+
+    // --- Pending receivers (T02) --------------------------------------------------------------------
+
+    [Fact]
+    [Trait("AC", "AC-5.3")]
+    public void OnSuccessAsync_on_a_pending_result_refuses_an_action_that_returns_a_result()
+    {
+        MethodInfo[] guards = [.. Guards("OnSuccessAsync").Where(m => !OnCompletedReceiver(m))];
+
+        guards.Length.ShouldBe(4); // with and without the value, sync and async action
+        foreach (MethodInfo guard in guards)
+        {
+            AssertGuard(guard, "use BindAsync");
+        }
+    }
+
+    private static Task Gate(TaskCompletionSource gate, List<string> log, string entry)
+    {
+        log.Add(entry);
+        return gate.Task;
+    }
+
+    [Fact]
+    [Trait("AC", "AC-5.2")]
+    public async Task A_Task_returning_lambda_on_a_pending_result_is_awaited_not_discarded()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var log = new List<string>();
+
+        // Expression lambdas returning a Task: they also convert to Action, which would discard the task.
+        Task<Result<int>> onSuccess = Task.FromResult(Result.Ok(1)).OnSuccessAsync(v => Gate(gate, log, $"success {v}"));
+        Task<Result> onSuccessNoValue = Task.FromResult(Result.Ok()).OnSuccessAsync(() => Gate(gate, log, "success"));
+        Task<Result> onFailure = Task.FromResult(Result.Fail(Error.Conflict("c", "C"))).OnFailureAsync(e => Gate(gate, log, $"failure {e.Count}"));
+
+        log.ShouldBe(["success 1", "success", "failure 1"], ignoreOrder: true);
+        onSuccess.IsCompleted.ShouldBeFalse();
+        onSuccessNoValue.IsCompleted.ShouldBeFalse();
+        onFailure.IsCompleted.ShouldBeFalse();
+
+        gate.SetResult();
+        await Task.WhenAll(onSuccess, onSuccessNoValue, onFailure);
     }
 }

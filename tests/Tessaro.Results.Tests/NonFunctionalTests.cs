@@ -92,4 +92,46 @@ public class NonFunctionalTests
         (await chain).ShouldBe("value 20");
         context.Posts.ShouldBe(0);
     }
+
+    [Fact]
+    [Trait("Spec", "004")]
+    [Trait("NFR", "NFR-2")]
+    public async Task Side_effect_steps_do_not_resume_on_the_callers_context()
+    {
+        var context = new CountingContext();
+        SynchronizationContext? previous = SynchronizationContext.Current;
+        Task<Result<int>> chain;
+        Task<Result<int>> onCompletedSuccess;
+        Task<Result> onCompletedFailure;
+
+        SynchronizationContext.SetSynchronizationContext(context);
+        try
+        {
+            Task<Result<int>> later = Task.Run(async () =>
+            {
+                await Task.Delay(20);
+                return Result.Ok(1);
+            });
+
+            chain = later
+                .OnSuccessAsync(_ => { })
+                .OnSuccessAsync(async _ => await Task.Delay(1))
+                .OnSuccessAsync(async () => await Task.Delay(1))
+                .OnFailureAsync(async _ => await Task.Delay(1));
+
+            // Completed receivers, called on the context: the actions return pending tasks without
+            // awaiting themselves, so only the library's own await could resume on the context.
+            onCompletedSuccess = Result.Ok(2).OnSuccessAsync(_ => Task.Delay(5));
+            onCompletedFailure = Result.Fail(Error.Conflict("c", "C")).OnFailureAsync(_ => Task.Delay(5));
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+
+        (await chain).Value.ShouldBe(1);
+        (await onCompletedSuccess).Value.ShouldBe(2);
+        (await onCompletedFailure).IsFailure.ShouldBeTrue();
+        context.Posts.ShouldBe(0);
+    }
 }
