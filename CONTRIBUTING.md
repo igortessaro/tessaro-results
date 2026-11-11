@@ -76,7 +76,14 @@ unapproved publishes nothing.
 
 ### 5. Verify
 
-nuget.org takes a few minutes to index a new version.
+nuget.org takes a few minutes to index a new version, in stages: the package page and the package
+index show it first, but `dotnet add package` finds it only once the registration index lists it
+(about 9 minutes for `0.1.0`). Until then a plain install still picks the previous version, or
+answers "no stable versions available". Check the registration index with:
+
+```bash
+curl -s --compressed https://api.nuget.org/v3/registration5-gz-semver2/tessaro.results/index.json | grep -o '"upper":"[^"]*"'
+```
 
 ```bash
 gh release view v0.1.0                       # notes, prerelease flag, attached .nupkg/.snupkg
@@ -91,7 +98,7 @@ MIT licence and the repository link.
 
 | Where it failed | What to do |
 |---|---|
-| `guard`, `ci` or `pack` | Fix the cause on `main` through a PR, delete the tag (`git push origin :refs/tags/v0.1.0 && git tag -d v0.1.0`), then tag again |
+| `guard`, `ci` or `pack` | Wait until the run has finished and read why it failed. Every job checks out the tag, so deleting the tag earlier makes the run fail at checkout and hides the real reason. Then fix the cause on `main` through a PR, delete the tag (`git push origin :refs/tags/v0.1.0 && git tag -d v0.1.0`) and tag again |
 | `publish`, before the push | Re-run the failed job from the run page |
 | `NuGet login`: "Token exchange failed (HTTP 401) … No matching trust policy" | The nuget.org Trusted Publishing policy doesn't match the run. Check *Repository Owner* = the **GitHub** owner (`igortessaro`, not the nuget.org user), *Repository* = `tessaro-results`, workflow `release.yml`, environment `release`, and that `NUGET_USER` is the nuget.org username of the policy's creator. Then re-run the failed job |
 | Push failed with "already exists" | That version is already on nuget.org and can never be overwritten. Release the next patch instead |

@@ -1,6 +1,6 @@
 # Spec 003 — NuGet release
 
-**Status:** Approved (2026-11-09) · **Created:** 2026-11-09
+**Status:** Implemented (2026-11-10) · **Approved:** 2026-11-09 · **Created:** 2026-11-09
 **Constitution:** [v1.0.0](../../docs/constitution.md) · **ADRs:** [0005](../../docs/adr/0005-pull-request-title-and-description.md)
 **Reference:** [tessaro-optional spec 002 — NuGet release](https://github.com/igortessaro/tessaro-optional/blob/main/specs/002-nuget-release/spec.md) (Implemented 2026-11-08)
 
