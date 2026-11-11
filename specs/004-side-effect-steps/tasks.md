@@ -1,6 +1,6 @@
 # Tasks 004 — Side-effect steps
 
-**Status:** Draft — awaiting owner review · **Created:** 2026-11-11
+**Status:** Approved (2026-11-11) · **Created:** 2026-11-11
 **Spec:** [004](spec.md) (Approved 2026-11-11) · **Plan:** [004](plan.md) (Approved 2026-11-11)
 
 > Ordered, small, independently verifiable steps that implement plan 004. Each task is **one
@@ -8,10 +8,9 @@
 > previous one. Execute each with the `sdd-task` skill.
 
 **Progress is tracked on GitHub**, not in this file: one issue per task in milestone
-"004 — Side-effect steps", labelled `task`, on the
+[004 — Side-effect steps](https://github.com/igortessaro/tessaro-results/milestone/4), labelled `task`, on the
 [Tessaro.Results board](https://github.com/users/igortessaro/projects/4). This file holds the *what*
-of each task; the issue holds its *state* (one source of truth each). Milestone and issue links are
-filled in when this file is approved (T00).
+of each task; the issue holds its *state* (one source of truth each).
 
 ---
 
@@ -44,9 +43,9 @@ control, and re-run the existing call shapes of specs 001–002 (plan 004 §8 R7
 | ID | Issue | Task | Covers | Branch | PR title |
 |---|---|---|---|---|---|
 | T00 | (this PR) | Spec, plan and tasks | — | `feature/004-docs-spec` | `Spec 004 \| Add side-effect steps spec, plan and tasks` |
-| T01 | — | Side-effect steps on completed results | US-1, US-2; US-3, US-4, AC-5.3 (completed receivers); AC-5.1 | `feature/004-completed-side-effects` | `Spec 004 (T01) \| Add OnSuccess and OnFailure on results` |
-| T02 | — | Side-effect steps on pending results | US-3, US-4, AC-5.3 (pending receivers); AC-5.2; NFR-2 | `feature/004-pending-side-effects` | `Spec 004 (T02) \| Add OnSuccessAsync and OnFailureAsync on tasks` |
-| T03 | — | Consumer checks, docs and closing | NFR-3 | `feature/004-docs-close` | `Spec 004 (T03) \| Document side-effect steps and close spec 004` |
+| T01 | [#34](https://github.com/igortessaro/tessaro-results/issues/34) | Side-effect steps on completed results | US-1, US-2; US-3, US-4, AC-5.3 (completed receivers); AC-5.1 | `feature/004-completed-side-effects` | `Spec 004 (T01) \| Add OnSuccess and OnFailure on results` |
+| T02 | [#35](https://github.com/igortessaro/tessaro-results/issues/35) | Side-effect steps on pending results | US-3, US-4, AC-5.3 (pending receivers); AC-5.2; NFR-2 | `feature/004-pending-side-effects` | `Spec 004 (T02) \| Add OnSuccessAsync and OnFailureAsync on tasks` |
+| T03 | [#36](https://github.com/igortessaro/tessaro-results/issues/36) | Consumer checks, docs and closing | NFR-3 | `feature/004-docs-close` | `Spec 004 (T03) \| Document side-effect steps and close spec 004` |
 
 T02's pending members delegate to the members T01 adds (plan §3.4), and both edit
 `ResultSideEffectExtensions`, so the tasks run in this order.
@@ -75,7 +74,8 @@ receiver; each half is tested in exactly one task.
 
 - **Goal:** land spec 004, plan 004, this file and the ADR 0006 note through one pull request.
 - **Before merging:** create the milestone "004 — Side-effect steps" and one `task` issue per task
-  (T01–T03), add them to the board as **Todo**, and fill the issue column above.
+  (T01–T03), add them to the board as **Todo**, and fill the issue column above — done 2026-11-11:
+  milestone 4, issues #34–#36.
 - **Done when:** the PR is merged with every check green.
 
 ### T01 — Side-effect steps on completed results
@@ -132,17 +132,15 @@ follows the release routine once the owner decides.
 
 ---
 
-## Open questions
+## Resolved questions (2026-11-11, owner approved the recommendations)
 
-1. **Three implementation tasks, split by receiver as in spec 002?** *Recommendation:* **yes** —
-   T01 is the largest (13 of the 23 members, guards included) but one concept; T02 delegates to it.
-2. **Rename the T00 PR to `Spec 004 | Add side-effect steps spec, plan and tasks`** (it now carries
-   all three documents)? *Recommendation:* **yes**, as spec 002's T00 did.
+1. **Three implementation tasks, split by receiver** as in spec 002 (T02 delegates to T01's members).
+2. **The T00 PR is titled `Spec 004 | Add side-effect steps spec, plan and tasks`.**
 
 ## Review checklist
 
-- [ ] Every AC of the spec lands in exactly one task (or is split by receiver, stated in both tasks)
-- [ ] Tasks are ordered by dependency; tasks sharing files run in sequence
-- [ ] Owner-only steps are named inside the task that needs them (none in this spec)
-- [ ] Each task has a branch, a PR title in the ADR 0005 format and a "done when"
-- [ ] The closing task covers docs, AC traceability, checklists, status and retrospective
+- [x] Every AC of the spec lands in exactly one task (or is split by receiver, stated in both tasks)
+- [x] Tasks are ordered by dependency; tasks sharing files run in sequence
+- [x] Owner-only steps are named inside the task that needs them (none in this spec)
+- [x] Each task has a branch, a PR title in the ADR 0005 format and a "done when"
+- [x] The closing task covers docs, AC traceability, checklists, status and retrospective
