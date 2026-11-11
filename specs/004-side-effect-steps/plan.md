@@ -135,6 +135,7 @@ Total: 23 public members — 12 working members, 3 Task guards and 8 result guar
 | `r.OnSuccess(o => { PublishAsync(o); })` — a **block** lambda discarding a task in a statement | Compiles (`Action<T>`): C# gives no warning for a discarded task outside an `async` method; the guards only see a lambda's return type | README known limitation; an analyzer is deferred (§10) |
 | Action returning `ValueTask` | Not guarded: binds to `Action`, the `ValueTask` is discarded | `ValueTask` is out of scope (spec §6); README known limitation |
 | A non-result return value (`o => set.Add(o)`, returns `bool`) | Binds to `Action<T>`; the value is ignored. The result guards don't apply (`bool` fails the `TOut : Result` constraint) | Spiked |
+| `r.OnFailure(null!)` / `r.OnSuccess(null!)` — an **untyped** `null` action | *Amended 2026-11-11 (T01):* binds to a Task guard (CS0619): `null` converts to every delegate type and the one with a return type wins. Type it: `(Action<IReadOnlyList<Error>>)null!` | Same family as spec 002's `Map<string>(_ => null!)`; only matters for tests of AC-4.1 |
 
 ## 4. Build configuration
 
