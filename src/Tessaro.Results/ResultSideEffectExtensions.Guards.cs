@@ -101,4 +101,52 @@ public static partial class ResultSideEffectExtensions
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static Task<Result<T>> OnSuccessAsync<T, TOut>(this Result<T> result, Func<T, Task<TOut>> action) where T : notnull where TOut : Result =>
         throw new NotSupportedException(OnSuccessAsyncReceivedResultAction);
+
+    /// <summary>Not supported: the action returns a result; use <see cref="ResultTaskExtensions.BindAsync(Task{Result}, Func{Result})"/>.</summary>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <typeparam name="TOut">The type of the result the action returns.</typeparam>
+    /// <param name="result">The pending result.</param>
+    /// <param name="action">An operation that can fail.</param>
+    /// <returns>Never returns.</returns>
+    /// <exception cref="NotSupportedException">Always (only reachable through reflection).</exception>
+    [Obsolete(OnSuccessAsyncReceivedResultAction, error: true)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static Task<TResult> OnSuccessAsync<TResult, TOut>(this Task<TResult> result, Func<TOut> action) where TResult : Result where TOut : Result =>
+        throw new NotSupportedException(OnSuccessAsyncReceivedResultAction);
+
+    /// <summary>Not supported: the action returns a task of a result; use <see cref="ResultTaskExtensions.BindAsync(Task{Result}, Func{Task{Result}})"/>.</summary>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <typeparam name="TOut">The type of the result the action completes with.</typeparam>
+    /// <param name="result">The pending result.</param>
+    /// <param name="action">An asynchronous operation that can fail.</param>
+    /// <returns>Never returns.</returns>
+    /// <exception cref="NotSupportedException">Always (only reachable through reflection).</exception>
+    [Obsolete(OnSuccessAsyncReceivedResultAction, error: true)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static Task<TResult> OnSuccessAsync<TResult, TOut>(this Task<TResult> result, Func<Task<TOut>> action) where TResult : Result where TOut : Result =>
+        throw new NotSupportedException(OnSuccessAsyncReceivedResultAction);
+
+    /// <summary>Not supported: the action returns a result; use <see cref="ResultTaskExtensions.BindAsync{T}(Task{Result{T}}, Func{T, Result})"/>.</summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="TOut">The type of the result the action returns.</typeparam>
+    /// <param name="result">The pending result.</param>
+    /// <param name="action">An operation that can fail.</param>
+    /// <returns>Never returns.</returns>
+    /// <exception cref="NotSupportedException">Always (only reachable through reflection).</exception>
+    [Obsolete(OnSuccessAsyncReceivedResultAction, error: true)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static Task<Result<T>> OnSuccessAsync<T, TOut>(this Task<Result<T>> result, Func<T, TOut> action) where T : notnull where TOut : Result =>
+        throw new NotSupportedException(OnSuccessAsyncReceivedResultAction);
+
+    /// <summary>Not supported: the action returns a task of a result; use <see cref="ResultTaskExtensions.BindAsync{T}(Task{Result{T}}, Func{T, Task{Result}})"/>.</summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="TOut">The type of the result the action completes with.</typeparam>
+    /// <param name="result">The pending result.</param>
+    /// <param name="action">An asynchronous operation that can fail.</param>
+    /// <returns>Never returns.</returns>
+    /// <exception cref="NotSupportedException">Always (only reachable through reflection).</exception>
+    [Obsolete(OnSuccessAsyncReceivedResultAction, error: true)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static Task<Result<T>> OnSuccessAsync<T, TOut>(this Task<Result<T>> result, Func<T, Task<TOut>> action) where T : notnull where TOut : Result =>
+        throw new NotSupportedException(OnSuccessAsyncReceivedResultAction);
 }

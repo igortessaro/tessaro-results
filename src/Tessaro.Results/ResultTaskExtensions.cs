@@ -15,7 +15,8 @@ public static partial class ResultTaskExtensions
 {
     private const string PendingCompletedWithNull = "The pending result completed with null.";
 
-    private static async Task<TResult> Completed<TResult>(Task<TResult> result) where TResult : Result =>
+    // Shared with ResultSideEffectExtensions (plan 004 §3.4): one null check for every pending receiver.
+    internal static async Task<TResult> Completed<TResult>(Task<TResult> result) where TResult : Result =>
         await result.ConfigureAwait(false) ?? throw new InvalidOperationException(PendingCompletedWithNull);
 
     /// <summary>Maps the value of a pending success without a value with a synchronous <paramref name="mapper"/>; see <see cref="Result.Map{TOut}(Func{TOut})"/>.</summary>
