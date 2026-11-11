@@ -96,4 +96,99 @@ public class SideEffectFailFastTests
         typed.ShouldBeAssignableTo<OperationCanceledException>();
         untyped.ShouldBeAssignableTo<OperationCanceledException>();
     }
+
+    // --- Pending receivers (T02) --------------------------------------------------------------------
+
+    private static Task<Result<int>> Never() => new TaskCompletionSource<Result<int>>().Task;
+
+    private static Task<Result> NeverUntyped() => new TaskCompletionSource<Result>().Task;
+
+    [Fact]
+    [Trait("AC", "AC-4.1")]
+    public void Null_actions_throw_at_the_call_on_a_pending_result_without_awaiting_it()
+    {
+        // The receivers never complete: a member that awaited before validating would hang, not throw.
+        Should.Throw<ArgumentNullException>(() => { _ = Never().OnSuccessAsync((Action<int>)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = Never().OnSuccessAsync((Func<int, Task>)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = Never().OnSuccessAsync((Action)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = Never().OnSuccessAsync((Func<Task>)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = Never().OnFailureAsync((Action<IReadOnlyList<Error>>)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = Never().OnFailureAsync((Func<IReadOnlyList<Error>, Task>)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = NeverUntyped().OnSuccessAsync((Action)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = NeverUntyped().OnSuccessAsync((Func<Task>)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = NeverUntyped().OnFailureAsync((Action<IReadOnlyList<Error>>)null!); }).ParamName.ShouldBe("action");
+        Should.Throw<ArgumentNullException>(() => { _ = NeverUntyped().OnFailureAsync((Func<IReadOnlyList<Error>, Task>)null!); }).ParamName.ShouldBe("action");
+    }
+
+    [Fact]
+    [Trait("AC", "AC-4.2")]
+    public void A_null_pending_result_throws_at_the_call()
+    {
+        Task<Result<int>> typed = null!;
+        Task<Result> untyped = null!;
+
+        Should.Throw<ArgumentNullException>(() => { _ = typed.OnSuccessAsync(_ => { }); }).ParamName.ShouldBe("result");
+        Should.Throw<ArgumentNullException>(() => { _ = typed.OnSuccessAsync(_ => Task.CompletedTask); }).ParamName.ShouldBe("result");
+        Should.Throw<ArgumentNullException>(() => { _ = typed.OnSuccessAsync(() => { }); }).ParamName.ShouldBe("result");
+        Should.Throw<ArgumentNullException>(() => { _ = typed.OnSuccessAsync(() => Task.CompletedTask); }).ParamName.ShouldBe("result");
+        Should.Throw<ArgumentNullException>(() => { _ = typed.OnFailureAsync(_ => { }); }).ParamName.ShouldBe("result");
+        Should.Throw<ArgumentNullException>(() => { _ = typed.OnFailureAsync(_ => Task.CompletedTask); }).ParamName.ShouldBe("result");
+        Should.Throw<ArgumentNullException>(() => { _ = untyped.OnSuccessAsync(() => { }); }).ParamName.ShouldBe("result");
+        Should.Throw<ArgumentNullException>(() => { _ = untyped.OnFailureAsync(_ => Task.CompletedTask); }).ParamName.ShouldBe("result");
+    }
+
+    [Fact]
+    [Trait("AC", "AC-4.3")]
+    public async Task A_pending_result_completing_with_null_throws_InvalidOperationException()
+    {
+        const string Expected = "The pending result completed with null.";
+
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult<Result<int>>(null!).OnSuccessAsync(_ => { }))).Message.ShouldBe(Expected);
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult<Result<int>>(null!).OnSuccessAsync(_ => Task.CompletedTask))).Message.ShouldBe(Expected);
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult<Result>(null!).OnSuccessAsync(() => { }))).Message.ShouldBe(Expected);
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult<Result>(null!).OnSuccessAsync(() => Task.CompletedTask))).Message.ShouldBe(Expected);
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult<Result>(null!).OnFailureAsync(_ => { }))).Message.ShouldBe(Expected);
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult<Result>(null!).OnFailureAsync(_ => Task.CompletedTask))).Message.ShouldBe(Expected);
+    }
+
+    [Fact]
+    [Trait("AC", "AC-4.4")]
+    public async Task An_async_action_returning_a_null_task_on_a_pending_result_throws_InvalidOperationException()
+    {
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult(Result.Ok(1)).OnSuccessAsync(_ => (Task)null!))).Message.ShouldContain("null task");
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult(Result.Ok()).OnSuccessAsync(() => (Task)null!))).Message.ShouldContain("null task");
+        (await Should.ThrowAsync<InvalidOperationException>(() => Task.FromResult(Result.Fail(_first)).OnFailureAsync(_ => (Task)null!))).Message.ShouldContain("null task");
+    }
+
+    [Fact]
+    [Trait("AC", "AC-4.5")]
+    public async Task A_faulted_pending_result_or_action_propagates_its_exception_and_stops_the_chain()
+    {
+        int later = 0;
+
+        (await Should.ThrowAsync<TimeoutException>(() => Task.FromException<Result<int>>(new TimeoutException("db")).OnSuccessAsync(_ => later++)))
+            .Message.ShouldBe("db");
+        (await Should.ThrowAsync<FormatException>(() => Task.FromResult(Result.Ok(1)).OnSuccessAsync(v => Fail(v)).OnSuccessAsync(_ => later++)))
+            .Message.ShouldBe("action failed");
+        (await Should.ThrowAsync<FormatException>(() => Task.FromResult(Result.Fail(_first)).OnFailureAsync(async _ =>
+        {
+            await Task.Yield();
+            throw new FormatException("after yield");
+        }).OnFailureAsync(_ => later++))).Message.ShouldBe("after yield");
+
+        later.ShouldBe(0);
+    }
+
+    [Fact]
+    [Trait("AC", "AC-4.6")]
+    public async Task A_cancelled_pending_result_or_action_stays_cancelled()
+    {
+        var cancelled = new CancellationToken(canceled: true);
+
+        Exception receiver = await Should.ThrowAsync<TaskCanceledException>(() => Task.FromCanceled<Result<int>>(cancelled).OnSuccessAsync(_ => { }));
+        Exception action = await Should.ThrowAsync<TaskCanceledException>(() => Task.FromResult(Result.Ok()).OnSuccessAsync(() => Task.FromCanceled(cancelled)));
+
+        receiver.ShouldBeAssignableTo<OperationCanceledException>();
+        action.ShouldBeAssignableTo<OperationCanceledException>();
+    }
 }
