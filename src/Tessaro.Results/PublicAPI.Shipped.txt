@@ -38,6 +38,7 @@ Tessaro.Result<T>.MapAsync<TOut>(System.Func<T, System.Threading.Tasks.Task<TOut
 Tessaro.Result<T>.Match<TOut>(System.Func<T, TOut>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, TOut>! onFailure) -> TOut
 Tessaro.Result<T>.MatchAsync<TOut>(System.Func<T, System.Threading.Tasks.Task<TOut>!>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task<TOut>!>! onFailure) -> System.Threading.Tasks.Task<TOut>!
 Tessaro.Result<T>.Value.get -> T
+Tessaro.ResultSideEffectExtensions
 Tessaro.ResultTaskExtensions
 override Tessaro.Error.Equals(object? obj) -> bool
 override Tessaro.Error.GetHashCode() -> int
@@ -64,6 +65,29 @@ static Tessaro.Result.Ok<T>(T value) -> Tessaro.Result<T>!
 static Tessaro.Result.implicit operator Tessaro.Result!(Tessaro.Error! error) -> Tessaro.Result!
 static Tessaro.Result<T>.implicit operator Tessaro.Result<T>!(T value) -> Tessaro.Result<T>!
 static Tessaro.Result<T>.implicit operator Tessaro.Result<T>!(Tessaro.Error! error) -> Tessaro.Result<T>!
+static Tessaro.ResultSideEffectExtensions.OnFailure<TResult>(this TResult! result, System.Action<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnFailure<TResult>(this TResult! result, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnFailureAsync<TResult>(this System.Threading.Tasks.Task<TResult!>! result, System.Action<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnFailureAsync<TResult>(this System.Threading.Tasks.Task<TResult!>! result, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnFailureAsync<TResult>(this TResult! result, System.Func<System.Collections.Generic.IReadOnlyList<Tessaro.Error!>!, System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<T, TOut>(this Tessaro.Result<T>! result, System.Func<T, TOut!>! action) -> Tessaro.Result<T>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<T>(this Tessaro.Result<T>! result, System.Action<T>! action) -> Tessaro.Result<T>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<T>(this Tessaro.Result<T>! result, System.Func<T, System.Threading.Tasks.Task!>! action) -> Tessaro.Result<T>!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<TResult, TOut>(this TResult! result, System.Func<TOut!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<TResult>(this TResult! result, System.Action! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnSuccess<TResult>(this TResult! result, System.Func<System.Threading.Tasks.Task!>! action) -> TResult!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T, TOut>(this System.Threading.Tasks.Task<Tessaro.Result<T>!>! result, System.Func<T, System.Threading.Tasks.Task<TOut!>!>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T, TOut>(this System.Threading.Tasks.Task<Tessaro.Result<T>!>! result, System.Func<T, TOut!>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T, TOut>(this Tessaro.Result<T>! result, System.Func<T, System.Threading.Tasks.Task<TOut!>!>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T>(this System.Threading.Tasks.Task<Tessaro.Result<T>!>! result, System.Action<T>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T>(this System.Threading.Tasks.Task<Tessaro.Result<T>!>! result, System.Func<T, System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<T>(this Tessaro.Result<T>! result, System.Func<T, System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<Tessaro.Result<T>!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult, TOut>(this System.Threading.Tasks.Task<TResult!>! result, System.Func<System.Threading.Tasks.Task<TOut!>!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult, TOut>(this System.Threading.Tasks.Task<TResult!>! result, System.Func<TOut!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult, TOut>(this TResult! result, System.Func<System.Threading.Tasks.Task<TOut!>!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult>(this System.Threading.Tasks.Task<TResult!>! result, System.Action! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult>(this System.Threading.Tasks.Task<TResult!>! result, System.Func<System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<TResult!>!
+static Tessaro.ResultSideEffectExtensions.OnSuccessAsync<TResult>(this TResult! result, System.Func<System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task<TResult!>!
 static Tessaro.ResultTaskExtensions.BindAsync(this System.Threading.Tasks.Task<Tessaro.Result!>! result, System.Func<System.Threading.Tasks.Task<Tessaro.Result!>!>! next) -> System.Threading.Tasks.Task<Tessaro.Result!>!
 static Tessaro.ResultTaskExtensions.BindAsync(this System.Threading.Tasks.Task<Tessaro.Result!>! result, System.Func<Tessaro.Result!>! next) -> System.Threading.Tasks.Task<Tessaro.Result!>!
 static Tessaro.ResultTaskExtensions.BindAsync<T, TOut>(this System.Threading.Tasks.Task<Tessaro.Result<T>!>! result, System.Func<T, System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!>! next) -> System.Threading.Tasks.Task<Tessaro.Result<TOut>!>!
